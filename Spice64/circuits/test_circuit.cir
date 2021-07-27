@@ -1,0 +1,16 @@
+* Test Circuit
+  vs 1 0 dc 5
+  r1 1 2 100
+  r2 2 3 50
+  r3 3 0 150
+  r4 2 0 200
+
+  .control
+    tran 1ns 100ns
+    print all
+
+    write F:\dev\Spice64\bin\test_cicrcuit_output.txt
+  .endc
+
+.end
+

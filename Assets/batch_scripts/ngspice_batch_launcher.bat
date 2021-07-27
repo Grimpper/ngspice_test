@@ -1,0 +1,1 @@
+start /d "F:\dev\Spice64\bin" ngspice.exe %1
