@@ -9,7 +9,7 @@
     tran 1ns 100ns
     print all
 
-    write F:\dev\Spice64\bin\test_cicrcuit_output.txt
+    write F:\Unity_Projects\ngspice_test\Spice64\circuits\test_circuit_output.txt
   .endc
 
 .end

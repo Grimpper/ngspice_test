@@ -15,27 +15,17 @@ public class Ngspice : MonoBehaviour
         if (GUI.Button(new Rect(10, 10, 150, 50), "Launch ngspice"))
         {
             Process ngspiceProcess = SpiceManager.GetProcess();
-
             ngspiceProcess.Start();
             LogRunningProcessName("ngspice_con");
-            
-            //StreamWriter inputStream = SpiceManager.GetInputStream();
-//
-            //inputStream.WriteLine("help all");
-            //inputStream.Flush();
-//
+
             if (debug) Debug.Log(ngspiceProcess.StandardOutput.ReadToEnd());
-            //LogRunningProcessName("ngspice_con");
-            
             ngspiceProcess.WaitForExit();
         }
-        //
-        // if (GUI.Button(new Rect(170, 10, 150, 50), "Compute output") && inputStream != null)
-        // {
-        //     LogRunningProcessName("ngspice_con");
-        //     //inputStream.WriteLine("op");
-        //     //inputStream.Flush();
-        // }
+       
+        if (GUI.Button(new Rect(170, 10, 150, 50), "Read output"))
+        {
+           SpiceParser.ReadString(); 
+        }
     }
 
     private void LogRunningProcessName(string strName)
