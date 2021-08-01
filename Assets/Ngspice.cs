@@ -31,11 +31,10 @@ public class Ngspice : MonoBehaviour
     private void LogRunningProcessName(string strName)
     {
         Process[] processes = Process.GetProcessesByName(strName);
+
+        if (processes.Length <= 0) return;
         
-        if (processes.Length > 0)
-        {
-            foreach (var process in processes)
-                Debug.Log(process.ProcessName+ " is running");
-        }
+        foreach (var process in processes)
+            Debug.Log(process.ProcessName+ " is running");
     }
 }

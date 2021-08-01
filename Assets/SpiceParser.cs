@@ -7,78 +7,121 @@ using UnityEngine;
 
 public class SpiceParser : MonoBehaviour
 {
-    static string path = System.IO.Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
+    static readonly string Path = Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
     
     public static void WriteString(string str)
     {
-        StreamWriter writer = new StreamWriter(path, true);
+        StreamWriter writer = new StreamWriter(Path, true);
         writer.WriteLine(str);
         writer.Close();
     }
 
     public static void ReadString()
     {
-        Debug.Log("Reading from: " + path);
+        Debug.Log("Reading from: " + Path);
         
         Dictionary<string, SpiceVariable> variables = new Dictionary<string, SpiceVariable>();
         
-        StreamReader file = new StreamReader(path);
+        StreamReader file = new StreamReader(Path);
+
+        ParseVariables(file, ref variables, VariableCount(file));
+        ParseValues(file, ref variables);
+
+        LogSpiceVariables(in variables);
+            
+        file.Close();
+    }
+
+    private static int VariableCount(in StreamReader file)
+    {
         string line;
-        
-        int numberOfVariables = 0;
 
         while ((line = file.ReadLine()) != null)
         {
-            Debug.Log("Reading...");
-            if (line.Contains("No. Variables:"))
-            {
-                Regex regexNumVar = new Regex(@"No. Variables: (\d+)");
-                Match varMatch = regexNumVar.Match(line);
-                numberOfVariables = int.Parse(varMatch.Groups[1].Value);
-            }
+            if (!line.Contains("No. Variables:")) continue;
             
-            if (line.Equals("Variables:"))
-            {
-                Debug.Log("Variables found");
-                
-                Regex regexVariables = new Regex(@"\t(\d)\t(.+)\t(.+)");
-                string varLine;
-                
-                while ((varLine = file.ReadLine()) != null && !varLine.Contains("Values:"))
-                {
-                    Match varMatch = regexVariables.Match(varLine);
-                    SpiceVariable variable = new SpiceVariable(varMatch.Groups[2].Value, new List<double>());
-                    
-                    Debug.Log("Line: " + varLine);
-                    
-                    variables.Add(varMatch.Groups[1].Value, variable);
-                    Debug.Log("groups: " + varMatch.Groups[1].Value + " -- " + variable.Name);
-                }
-                
-                Debug.Log("Values found");
-                
-                Regex regexValues = new Regex(@"( \d)?\t(.+)");
-                
-                if (!line.Equals("Values:"))
-                {
-                    Debug.Log("Values found");
-                    continue;
-                }
-                
-                while ((varLine = file.ReadLine()) != null)
-                {
-                    for (int i = 0; i < numberOfVariables | (varLine = file.ReadLine()) != null; i++)
-                    {
-                        variables.TryGetValue(i.ToString(), out SpiceVariable variable);
-                        
-                        Match varMatch = regexVariables.Match(varLine);
-                        
-                        variable.Values.Add(double.Parse(varMatch.Groups[2].Value));
-                    } 
-                }
-            }
+            Regex regexNumVar = new Regex(@"No. Variables: (\d+)");
+            Match varMatch = regexNumVar.Match(line);
+            
+            return int.Parse(varMatch.Groups[1].Value);
         }
 
-        file.Close();
+        return -1;
     }
+
+    private static void ParseVariables(in StreamReader file, ref Dictionary<string, SpiceVariable> variables,
+        int numberOfVariables)
+    {
+        string line;
+
+        while ((line = file.ReadLine()) != null)
+        {
+            if (!line.Equals("Variables:")) continue;
+            
+            //Debug.Log("Variables found");
+
+            Regex regexVariables = new Regex(@"\t(\d)\t(.+)\t(.+)");
+
+            for (int i = 0; i < numberOfVariables; i++)
+            {
+                if ((line = file.ReadLine()) == null) break;
+                
+                Match varMatch = regexVariables.Match(line);
+                SpiceVariable variable = new SpiceVariable(varMatch.Groups[2].Value, new List<double>());
+
+                //Debug.Log("Line: " + line);
+
+                variables.Add(varMatch.Groups[1].Value, variable);
+                //Debug.Log("groups: " + varMatch.Groups[1].Value + " -- " + variable.Name);
+            }
+            
+            break;
+        }
+    }
+    private static void ParseValues(in StreamReader file, ref Dictionary<string, SpiceVariable> variables)
+    {
+        string line;
+        bool valuesFound = false;
+
+        while ((line = file.ReadLine()) != null)
+        {
+            if (!valuesFound && !line.Equals("Values:")) continue;
+
+            valuesFound = true;
+            //Debug.Log("Values found");
+
+            Regex regexValues = new Regex(@"( \d)?\t(.+)");
+            
+            for (int i = 0; i < variables.Count; i++)
+            {
+                if ((line = file.ReadLine()) == null) break;
+                
+                variables.TryGetValue(i.ToString(), out SpiceVariable variable);
+                
+                Match varMatch = regexValues.Match(line);
+                
+                //Debug.Log("Value: " + varMatch.Groups[2].Value);
+                
+                variable?.Values.Add(double.Parse(varMatch.Groups[2].Value));
+            }
+        }
+    }
+
+    private static void LogSpiceVariables(in Dictionary<string, SpiceVariable> variables)
+    {
+        for (int i = 0; i < variables.Count; i++)
+        {
+            variables.TryGetValue(i.ToString(), out SpiceVariable variable);
+            
+            if (variable == null) return;
+            
+            Debug.Log(variable.Name + ": \n");
+
+            foreach (double value in variable.Values)
+            {
+                Debug.Log(value + ", ");
+            }
+        }
+    }
+    
 }
