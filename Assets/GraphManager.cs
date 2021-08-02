@@ -79,12 +79,13 @@ public class GraphManager : MonoBehaviour
         float graphHeight = graphContainer.sizeDelta.y;
         float graphWidth = graphContainer.sizeDelta.x;
         
+        float xSize = 28f;
         float yMax = testList.Max(y => y);
 
         GameObject lastCircle = null;
         for (int i = 0; i < testList.Count; i++)
         {
-            float xPos = i / testList.Count * graphWidth;
+            float xPos = xSize + i * xSize;
             float yPos = testList[i] / yMax * graphHeight;
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
@@ -114,11 +115,11 @@ public class GraphManager : MonoBehaviour
         rectTransform.anchorMax = new Vector2(0, 0);
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositionA +  0.5f * distance * dir;
-        rectTransform.localEulerAngles = new Vector3(0, 0, GetAngleFromVector(dir));
+        rectTransform.localEulerAngles = new Vector3(0, 0, GetAngleFromVectorDegrees(dir));
     }
 
-    private static float GetAngleFromVector(Vector2 vector)
+    private static float GetAngleFromVectorDegrees(Vector2 vector)
     {
-        return (float) Math.Atan(vector.y / vector.x);
+        return (float) (Math.Atan(vector.y / vector.x) * 180 / Math.PI);
     }
 }   

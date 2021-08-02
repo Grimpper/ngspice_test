@@ -1,5 +1,5 @@
 Title: * test circuit
-Date: Mon Aug  2 03:10:39  2021
+Date: Mon Aug  2 11:21:50  2021
 Plotname: Transient Analysis
 Flags: real
 No. Variables: 5
