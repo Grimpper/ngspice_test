@@ -8,6 +8,9 @@ using UnityEngine;
 public class SpiceParser : MonoBehaviour
 {
     static readonly string Path = Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
+    private static Dictionary<string, SpiceVariable> variables = new Dictionary<string, SpiceVariable>();
+
+    public static Dictionary<string, SpiceVariable> Variables => variables;
     
     public static void WriteString(string str)
     {
@@ -19,8 +22,6 @@ public class SpiceParser : MonoBehaviour
     public static void ReadString()
     {
         Debug.Log("Reading from: " + Path);
-        
-        Dictionary<string, SpiceVariable> variables = new Dictionary<string, SpiceVariable>();
         
         StreamReader file = new StreamReader(Path);
 
@@ -52,7 +53,8 @@ public class SpiceParser : MonoBehaviour
     private static void ParseVariables(in StreamReader file, ref Dictionary<string, SpiceVariable> variables,
         int numberOfVariables)
     {
-        string line;
+        string line; 
+        variables.Clear();
 
         while ((line = file.ReadLine()) != null)
         {
@@ -107,7 +109,7 @@ public class SpiceParser : MonoBehaviour
         }
     }
 
-    private static void LogSpiceVariables(in Dictionary<string, SpiceVariable> variables)
+    public static void LogSpiceVariables(in Dictionary<string, SpiceVariable> variables)
     {
         for (int i = 0; i < variables.Count; i++)
         {
