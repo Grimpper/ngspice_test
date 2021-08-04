@@ -9,10 +9,14 @@ public class GraphManager : MonoBehaviour
 {
     [SerializeField] private Sprite circleSprite;
     private RectTransform graphContainer;
+    private RectTransform labelTemplateX;
+    private RectTransform labelTemplateY;
 
     private void Awake()
     {
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
+        labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
+        labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
     }
     
     private void OnGUI()
@@ -80,7 +84,7 @@ public class GraphManager : MonoBehaviour
         float graphWidth = graphContainer.sizeDelta.x;
         
         float xSize = 28f;
-        float yMax = testList.Max(y => y);
+        float yMax = 100f;
 
         GameObject lastCircle = null;
         for (int i = 0; i < testList.Count; i++)
@@ -98,6 +102,23 @@ public class GraphManager : MonoBehaviour
             }
 
             lastCircle = circle;
+
+            RectTransform labelX = Instantiate(labelTemplateX);
+            labelX.SetParent(graphContainer, false);
+            labelX.gameObject.SetActive(true);
+            labelX.anchoredPosition = new Vector2(xPos, -5f);
+            labelX.GetComponent<Text>().text = i.ToString();
+        }
+
+        int separatorCount = 10;
+        for (int i = 0; i <= separatorCount; i++)
+        {
+            RectTransform labelY = Instantiate(labelTemplateY);
+            labelY.SetParent(graphContainer, false);
+            labelY.gameObject.SetActive(true);
+            float normalizedValue = (float) i / separatorCount;
+            labelY.anchoredPosition = new Vector2(-14f, normalizedValue * graphHeight);
+            labelY.GetComponent<Text>().text = Mathf.RoundToInt(normalizedValue * yMax).ToString();
         }
     }
 

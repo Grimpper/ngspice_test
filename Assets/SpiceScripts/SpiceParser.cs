@@ -8,9 +8,9 @@ using UnityEngine;
 public class SpiceParser : MonoBehaviour
 {
     static readonly string Path = Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
-    private static Dictionary<string, SpiceVariable> variables = new Dictionary<string, SpiceVariable>();
+    private static Dictionary<int, SpiceVariable> variables = new Dictionary<int, SpiceVariable>();
 
-    public static Dictionary<string, SpiceVariable> Variables => variables;
+    public static Dictionary<int, SpiceVariable> Variables => variables;
     
     public static void WriteString(string str)
     {
@@ -50,7 +50,7 @@ public class SpiceParser : MonoBehaviour
         return -1;
     }
 
-    private static void ParseVariables(in StreamReader file, ref Dictionary<string, SpiceVariable> variables,
+    private static void ParseVariables(in StreamReader file, ref Dictionary<int, SpiceVariable> variables,
         int numberOfVariables)
     {
         string line; 
@@ -73,14 +73,14 @@ public class SpiceParser : MonoBehaviour
 
                 //Debug.Log("Line: " + line);
 
-                variables.Add(varMatch.Groups[1].Value, variable);
+                variables.Add(int.Parse(varMatch.Groups[1].Value), variable);
                 //Debug.Log("groups: " + varMatch.Groups[1].Value + " -- " + variable.Name);
             }
             
             break;
         }
     }
-    private static void ParseValues(in StreamReader file, ref Dictionary<string, SpiceVariable> variables)
+    private static void ParseValues(in StreamReader file, ref Dictionary<int, SpiceVariable> variables)
     {
         string line;
         bool valuesFound = false;
@@ -98,7 +98,7 @@ public class SpiceParser : MonoBehaviour
             {
                 if ((line = file.ReadLine()) == null) break;
                 
-                variables.TryGetValue(i.ToString(), out SpiceVariable variable);
+                variables.TryGetValue(i, out SpiceVariable variable);
                 
                 Match varMatch = regexValues.Match(line);
                 
@@ -109,11 +109,11 @@ public class SpiceParser : MonoBehaviour
         }
     }
 
-    public static void LogSpiceVariables(in Dictionary<string, SpiceVariable> variables)
+    public static void LogSpiceVariables(in Dictionary<int, SpiceVariable> variables)
     {
         for (int i = 0; i < variables.Count; i++)
         {
-            variables.TryGetValue(i.ToString(), out SpiceVariable variable);
+            variables.TryGetValue(i, out SpiceVariable variable);
             
             if (variable == null) return;
             
