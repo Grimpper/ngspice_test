@@ -11,12 +11,16 @@ public class GraphManager : MonoBehaviour
     private RectTransform graphContainer;
     private RectTransform labelTemplateX;
     private RectTransform labelTemplateY;
+    private RectTransform dashTemplateX;
+    private RectTransform dashTemplateY;
 
     private void Awake()
     {
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
         labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
         labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
+        dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
+        dashTemplateY = graphContainer.Find("Dash template Y").GetComponent<RectTransform>();
     }
     
     private void OnGUI()
@@ -103,22 +107,29 @@ public class GraphManager : MonoBehaviour
 
             lastCircle = circle;
 
-            RectTransform labelX = Instantiate(labelTemplateX);
-            labelX.SetParent(graphContainer, false);
+            RectTransform labelX = Instantiate(labelTemplateX, graphContainer, false);
             labelX.gameObject.SetActive(true);
             labelX.anchoredPosition = new Vector2(xPos, -5f);
             labelX.GetComponent<Text>().text = i.ToString();
+            
+            RectTransform dashX = Instantiate(dashTemplateX, graphContainer, false);
+            dashX.gameObject.SetActive(true);
+            dashX.anchoredPosition = new Vector2(xPos, -5f);
         }
 
         int separatorCount = 10;
         for (int i = 0; i <= separatorCount; i++)
         {
-            RectTransform labelY = Instantiate(labelTemplateY);
-            labelY.SetParent(graphContainer, false);
+            RectTransform labelY = Instantiate(labelTemplateY, graphContainer, false);
             labelY.gameObject.SetActive(true);
+            
             float normalizedValue = (float) i / separatorCount;
             labelY.anchoredPosition = new Vector2(-14f, normalizedValue * graphHeight);
             labelY.GetComponent<Text>().text = Mathf.RoundToInt(normalizedValue * yMax).ToString();
+            
+            RectTransform dashY = Instantiate(dashTemplateY, graphContainer, false);
+            dashY.gameObject.SetActive(true);
+            dashY.anchoredPosition = new Vector2(-4, normalizedValue * graphHeight);
         }
     }
 
