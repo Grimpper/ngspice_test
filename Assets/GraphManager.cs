@@ -32,10 +32,26 @@ public class GraphManager : MonoBehaviour
         {
             //ShowGraph(1, SpiceParser.Variables);
             
-            List<int> testList = new List<int> {5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33};
-            ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
-            testList[0] = 20;
-            ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+            //List<int> testList = new List<int> {5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33};
+            //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+            //testList[0] = 20;
+            //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+            
+            StartCoroutine(ShowRandomGraph(15, 0.5f));
+        }
+    }
+
+    private IEnumerator ShowRandomGraph(int size, float repeatRate)
+    {
+        while (true)
+        {
+            List <int> list = new List<int>();
+            for (int i = 0; i < size; i++)
+                list.Add(UnityEngine.Random.Range(0, 500));
+            
+            ShowGraphTest(list, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+
+            yield return new WaitForSeconds(repeatRate);
         }
     }
 
@@ -177,7 +193,7 @@ public class GraphManager : MonoBehaviour
     {
         RectTransform labelX = Instantiate(labelTemplateX, graphContainer, false);
         labelX.gameObject.SetActive(true);
-        labelX.anchoredPosition = new Vector2(xPos, -5f);
+        labelX.anchoredPosition = new Vector2(xPos, -8f);
         labelX.GetComponent<Text>().text = labelText;
         
         gameObjectsList.Add(labelX.gameObject);
