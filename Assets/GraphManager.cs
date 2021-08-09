@@ -9,6 +9,9 @@ using UnityEngine.UI;
 public class GraphManager : MonoBehaviour
 {
     [SerializeField] private Sprite circleSprite;
+    [SerializeField] private bool startAtZero = false;
+    [SerializeField] private int numberOfPointsToDisplay = -1;
+    private const float MinYDiff = 5f;
     private RectTransform graphContainer;
     private RectTransform labelTemplateX;
     private RectTransform labelTemplateY;
@@ -31,13 +34,17 @@ public class GraphManager : MonoBehaviour
         if (GUI.Button(new Rect(330, 10, 150, 50), "Show graph"))
         {
             //ShowGraph(1, SpiceParser.Variables);
-            
-            //List<int> testList = new List<int> {5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33};
-            //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+
+            List<int> testList = new List<int>
+            {
+                5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33, 5, 98, 56,
+                46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33
+            };
+            ShowGraphTest(testList, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
             //testList[0] = 20;
             //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
             
-            StartCoroutine(ShowRandomGraph(15, 0.5f));
+            //StartCoroutine(ShowRandomGraph(15, 0.5f));
         }
     }
 
@@ -49,7 +56,7 @@ public class GraphManager : MonoBehaviour
             for (int i = 0; i < size; i++)
                 list.Add(UnityEngine.Random.Range(0, 500));
             
-            ShowGraphTest(list, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+            ShowGraphTest(list, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
 
             yield return new WaitForSeconds(repeatRate);
         }
@@ -134,31 +141,51 @@ public class GraphManager : MonoBehaviour
         }
     }
     
-    private void ShowGraphTest(List<int> testList, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
+    private void ShowGraphTest(List<int> testList, int maxVisibleAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
         getAxisLabelX ??= _i => _i.ToString();
         getAxisLabelY ??= _f => Mathf.RoundToInt(_f).ToString();
-
+        
+        if (maxVisibleAmount < 0)
+            maxVisibleAmount = testList.Count;
+        
         foreach (GameObject gameObject in gameObjectsList)
         {
             Destroy(gameObject);
         }
         gameObjectsList.Clear();
         
+        float graphWidth = graphContainer.sizeDelta.x;
         float graphHeight = graphContainer.sizeDelta.y;
         
-        const float xSize = 28f;
+        int startIndex = Mathf.Max(testList.Count - maxVisibleAmount, 0);
         
-        float yMax = testList.Max();
-        float yMin = testList.Min();
+        float xSize = graphWidth / (maxVisibleAmount + 1);
+        
+        float yMax = testList[0];
+        float yMin = testList[0];
 
-        yMax += (yMax - yMin) * 0.2f;
-        yMin -= (yMax - yMin) * 0.2f;
-
-        GameObject lastCircle = null;
-        for (int i = 0; i < testList.Count; i++)
+        for (int i = startIndex; i < testList.Count; i++)
         {
-            float xPos = xSize + i * xSize;
+            int value = testList[i];
+            if (value > yMax)
+                yMax = value;
+            else if (value < yMin)
+                yMin = value;
+        }
+
+        float yDiff = yMax - yMin <= 0 ? MinYDiff : yMax - yMin;
+        yMax += yDiff * 0.2f;
+        yMin -= yDiff * 0.2f;
+
+        if (startAtZero)
+            yMin = 0;
+        
+        GameObject lastCircle = null;
+        int xIndex = 0;
+        for (int i = startIndex; i < testList.Count; i++, xIndex++)
+        {
+            float xPos = xSize + xIndex * xSize;
             float yPos = (testList[i] - yMin) / (yMax - yMin) * graphHeight;
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
