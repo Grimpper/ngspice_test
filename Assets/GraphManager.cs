@@ -33,14 +33,14 @@ public class GraphManager : MonoBehaviour
     {
         if (GUI.Button(new Rect(330, 10, 150, 50), "Show graph"))
         {
-            //ShowGraph(1, SpiceParser.Variables);
+            ShowGraph(2, SpiceParser.Variables);
 
-            List<int> testList = new List<int>
-            {
-                5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33, 5, 98, 56,
-                46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33
-            };
-            ShowGraphTest(testList, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
+            //List<int> testList = new List<int>
+            //{
+            //    5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33, 5, 98, 56,
+            //    46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33
+            //};
+            //ShowGraphTest(testList, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
             //testList[0] = 20;
             //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
             
@@ -77,41 +77,60 @@ public class GraphManager : MonoBehaviour
         return dot;
     }
 
-    private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables, 
+    private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int maxVisibleAmount = -1, 
         Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
         getAxisLabelX ??= _i => _i.ToString();
-        getAxisLabelY ??= f => Mathf.RoundToInt(f).ToString();
+        getAxisLabelY ??= _f => _f.ToString();
 
         foreach (GameObject gameObject in gameObjectsList)
         {
             Destroy(gameObject);
         }
         gameObjectsList.Clear();
-
-        float graphHeight = graphContainer.sizeDelta.y;
-        float graphWidth = graphContainer.sizeDelta.x;
-
+        
         variables.TryGetValue(variableIndex, out SpiceVariable variable);
         variables.TryGetValue(0, out SpiceVariable time);
         
         if (variable == null || time == null) return;
-        
-        float xMax = (float) time.Values.Max();
-        
-        float yMax = (float) variable.Values.Max();
-        float yMin = (float) variable.Values.Min();
 
-        yMax += (yMax - yMin) * 0.2f;
-        yMin -= (yMax - yMin) * 0.2f;
+        if (maxVisibleAmount < 0)
+            maxVisibleAmount = variable.Values.Count;
+
+        float graphWidth = graphContainer.sizeDelta.x;
+        float graphHeight = graphContainer.sizeDelta.y;
+
+        int startIndex = Mathf.Max(variable.Values.Count - maxVisibleAmount, 0);
+        
+        float xSize = graphWidth / (maxVisibleAmount + 1);
+        
+        double yMax = variable.Values[0];
+        double yMin = variable.Values[0];
+        
+        for (int i = startIndex; i < variable.Values.Count; i++)
+        {
+            double value = variable.Values[i];
+            if (value > yMax)
+                yMax = value;
+            else if (value < yMin)
+                yMin = value;
+        }
+
+        double yDiff = yMax - yMin <= 0 ? MinYDiff : yMax - yMin;
+        yMax += yDiff * 0.2f;
+        yMin -= yDiff * 0.2f;
+        
+        if (startAtZero)
+            yMin = 0;
 
         Debug.Log("Drawing: " + variable.Name);
 
         GameObject lastCircle = null;
-        for (int i = 0; i < variable.Values.Count; i++)
+        int xIndex = 0;
+        for (int i = startIndex; i < variable.Values.Count; i++, xIndex++)
         {
-            float xPos = (float) (time.Values[i] / xMax) * graphWidth;
-            float yPos = (float) (variable.Values[i] / yMax) * graphHeight;
+            float xPos = xSize + xIndex * xSize;
+            float yPos = (float) ((variable.Values[i] - yMin) / (yMax - yMin) * graphHeight);
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
             
@@ -136,7 +155,7 @@ public class GraphManager : MonoBehaviour
         {
             float normalizedValue = (float) i / separatorCount;
             
-            CreateLabelY(normalizedValue, graphHeight, getAxisLabelY(normalizedValue * yMax));
+            CreateLabelY(normalizedValue, graphHeight, getAxisLabelY((float) (yMin + normalizedValue * (yMax - yMin))));
             CreateDashY(normalizedValue, graphHeight);
         }
     }
