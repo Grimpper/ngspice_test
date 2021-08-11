@@ -5,14 +5,14 @@ using UnityEngine;
 public class SpiceVariable
 {
     private string name;
-    private List<double> values;
+    private List<float> values;
 
-    public SpiceVariable(string name, List<double> values)
+    public SpiceVariable(string name, List<float> values)
     {
         this.name = name;
         this.values = values;
     }
 
     public string Name => name;
-    public List<double> Values => values;
+    public List<float> Values => values;
 }

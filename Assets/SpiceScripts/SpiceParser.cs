@@ -69,7 +69,7 @@ public class SpiceParser : MonoBehaviour
                 if ((line = file.ReadLine()) == null) break;
                 
                 Match varMatch = regexVariables.Match(line);
-                SpiceVariable variable = new SpiceVariable(varMatch.Groups[2].Value, new List<double>());
+                SpiceVariable variable = new SpiceVariable(varMatch.Groups[2].Value, new List<float>());
 
                 //Debug.Log("Line: " + line);
 
@@ -104,7 +104,7 @@ public class SpiceParser : MonoBehaviour
                 
                 //Debug.Log("Value: " + varMatch.Groups[2].Value);
                 
-                variable?.Values.Add(double.Parse(varMatch.Groups[2].Value));
+                variable?.Values.Add(float.Parse(varMatch.Groups[2].Value));
             }
         }
     }
@@ -119,7 +119,7 @@ public class SpiceParser : MonoBehaviour
             
             Debug.Log(variable.Name + ": \n");
 
-            foreach (double value in variable.Values)
+            foreach (float value in variable.Values)
             {
                 Debug.Log(value + ", ");
             }

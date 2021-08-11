@@ -48,7 +48,7 @@ public class GraphManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ShowRandomGraph(int size, float repeatRate)
+    /*private IEnumerator ShowRandomGraph(int size, float repeatRate)
     {
         while (true)
         {
@@ -60,7 +60,7 @@ public class GraphManager : MonoBehaviour
 
             yield return new WaitForSeconds(repeatRate);
         }
-    }
+    }*/
 
     private GameObject CreateCircle(Vector2 anchoredPos)
     {
@@ -78,10 +78,17 @@ public class GraphManager : MonoBehaviour
     }
 
     private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int maxVisibleAmount = -1, 
-        Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
+        Func<float, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
-        getAxisLabelX ??= _i => _i.ToString();
-        getAxisLabelY ??= _f => _f.ToString();
+        getAxisLabelX ??= f =>
+        {
+            //f = (float) Math.Round(f, GetSignificantFigurePos(f) + 1);
+            return f.ToString();
+        };
+        getAxisLabelY ??= f =>
+        {
+            return f.ToString();
+        };
 
         foreach (GameObject gameObject in gameObjectsList)
         {
@@ -100,37 +107,15 @@ public class GraphManager : MonoBehaviour
         float graphWidth = graphContainer.sizeDelta.x;
         float graphHeight = graphContainer.sizeDelta.y;
 
-        int startIndex = Mathf.Max(variable.Values.Count - maxVisibleAmount, 0);
-        
-        float xSize = graphWidth / (maxVisibleAmount + 1);
-        
-        double yMax = variable.Values[0];
-        double yMin = variable.Values[0];
-        
-        for (int i = startIndex; i < variable.Values.Count; i++)
-        {
-            double value = variable.Values[i];
-            if (value > yMax)
-                yMax = value;
-            else if (value < yMin)
-                yMin = value;
-        }
-
-        double yDiff = yMax - yMin <= 0 ? MinYDiff : yMax - yMin;
-        yMax += yDiff * 0.2f;
-        yMin -= yDiff * 0.2f;
-        
-        if (startAtZero)
-            yMin = 0;
-
-        Debug.Log("Drawing: " + variable.Name);
+        var (yMin, yMax, yStep, startIndex) = getAxisValues(variable.Values, maxVisibleAmount);
+        var (xMin, xMax, xStep, _) = getAxisValues(time.Values);
 
         GameObject lastCircle = null;
         int xIndex = 0;
         for (int i = startIndex; i < variable.Values.Count; i++, xIndex++)
         {
-            float xPos = xSize + xIndex * xSize;
-            float yPos = (float) ((variable.Values[i] - yMin) / (yMax - yMin) * graphHeight);
+            float xPos = (time.Values[i] - xMin) / (xMax - xMin) * graphWidth;
+            float yPos = (variable.Values[i] - yMin) / (yMax - yMin) * graphHeight;
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
             
@@ -145,22 +130,29 @@ public class GraphManager : MonoBehaviour
             }
 
             lastCircle = circle;
-            
-            CreateLabelX(xPos, getAxisLabelX(i));
-            CreateDashX(xPos);
         }
-
-        int separatorCount = 10;
-        for (int i = 0; i <= separatorCount; i++)
+        
+        for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
-            float normalizedValue = (float) i / separatorCount;
+            float normalizedValue = xSeparatorPos / xMax;
             
-            CreateLabelY(normalizedValue, graphHeight, getAxisLabelY((float) (yMin + normalizedValue * (yMax - yMin))));
-            CreateDashY(normalizedValue, graphHeight);
+            CreateLabel(labelTemplateX, new Vector2(normalizedValue * graphWidth, -8f), 
+                getAxisLabelX(xSeparatorPos));
+            CreateDash(dashTemplateX, new Vector2(normalizedValue * graphWidth, -5f));
+
+        }
+        
+        for (float ySeparatorPos = yMin; ySeparatorPos <= yMax; ySeparatorPos += yStep)
+        {
+            float normalizedValue = ySeparatorPos / yMax;
+            
+            CreateLabel(labelTemplateY, new Vector2(-14f, normalizedValue * graphHeight),
+                getAxisLabelY(ySeparatorPos));
+            CreateDash(dashTemplateY,new Vector2(-4, normalizedValue * graphHeight));
         }
     }
     
-    private void ShowGraphTest(List<int> testList, int maxVisibleAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
+    /*private void ShowGraphTest(List<int> testList, int maxVisibleAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
         getAxisLabelX ??= _i => _i.ToString();
         getAxisLabelY ??= _f => Mathf.RoundToInt(_f).ToString();
@@ -221,8 +213,8 @@ public class GraphManager : MonoBehaviour
 
             lastCircle = circle;
 
-            CreateLabelX(xPos, getAxisLabelX(i));
-            CreateDashX(xPos);
+            CreateLabel(labelTemplateX, new Vector2(xPos, -8f), getAxisLabelX(i));
+            CreateDash(dashTemplateX, new Vector2(xPos, -5f));
         }
 
         int separatorCount = 10;
@@ -230,48 +222,61 @@ public class GraphManager : MonoBehaviour
         {
             float normalizedValue = (float) i / separatorCount;
             
-            CreateLabelY(normalizedValue, graphHeight, getAxisLabelY(yMin + normalizedValue * (yMax - yMin)));
-            CreateDashY(normalizedValue, graphHeight);
+            CreateLabel(labelTemplateY, new Vector2(-14f, normalizedValue * graphHeight),
+                getAxisLabelY(yMin + normalizedValue * (yMax - yMin)));
+            CreateDash(dashTemplateY,new Vector2(-4, normalizedValue * graphHeight));
         }
-    }
+    }*/
 
-    private void CreateLabelX(float xPos, string labelText)
+    private (float min, float max, float step, int startIndex) getAxisValues(List<float> valueList, int? maxVisibleAmount = null)
     {
-        RectTransform labelX = Instantiate(labelTemplateX, graphContainer, false);
-        labelX.gameObject.SetActive(true);
-        labelX.anchoredPosition = new Vector2(xPos, -8f);
-        labelX.GetComponent<Text>().text = labelText;
+        int startIndex = Mathf.Max(valueList.Count - maxVisibleAmount ?? 0, 0);
         
-        gameObjectsList.Add(labelX.gameObject);
-    }
+        float max = valueList[0];
+        float min = valueList[0];
         
-    private void CreateLabelY(float normalizedValue, float graphHeight, string labelText)
-    {
-        RectTransform labelY = Instantiate(labelTemplateY, graphContainer, false);
-        labelY.gameObject.SetActive(true);
+        for (int i = startIndex; i < valueList.Count; i++)
+        {
+            float value = valueList[i];
+            if (value > max)
+                max = value;
+            else if (value < min)
+                min = value;
+        }
+
+        float diff = max - min <= 0 ? MinYDiff : max - min;
         
-        labelY.anchoredPosition = new Vector2(-14f, normalizedValue * graphHeight);
-        labelY.GetComponent<Text>().text = labelText;
+        int significantFigurePos = GetSignificantFigurePos(diff);
+        float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
+
+        float step = Mathf.Pow(10, -significantFigurePos) / (significantFigure > 5 ? 1f : 2f);
+
+        max += step;
+        min -= step;
         
-        gameObjectsList.Add(labelY.gameObject);
-    }
+        if (startAtZero)
+            min = 0;
+
+        return (min , max, step, startIndex);
+    }   
     
-    private void CreateDashX(float xPos)
+    private void CreateLabel(RectTransform labelTemplate, Vector2 position, string labelText)
     {
-        RectTransform dashX = Instantiate(dashTemplateX, graphContainer, false);
-        dashX.gameObject.SetActive(true);
-        dashX.anchoredPosition = new Vector2(xPos, -5f);
+        RectTransform label = Instantiate(labelTemplate, graphContainer, false);
+        label.gameObject.SetActive(true);
+        label.anchoredPosition = position;
+        label.GetComponent<Text>().text = labelText;
         
-        gameObjectsList.Add(dashX.gameObject);
+        gameObjectsList.Add(label.gameObject);
     }
 
-    private void CreateDashY(float normalizedValue, float graphHeight)
+    private void CreateDash(RectTransform dashTemplate, Vector2 position)
     {
-        RectTransform dashY = Instantiate(dashTemplateY, graphContainer, false);
-        dashY.gameObject.SetActive(true);
-        dashY.anchoredPosition = new Vector2(-4, normalizedValue * graphHeight);
+        RectTransform dash = Instantiate(dashTemplate, graphContainer, false);
+        dash.gameObject.SetActive(true);
+        dash.anchoredPosition = position;
         
-        gameObjectsList.Add(dashY.gameObject);
+        gameObjectsList.Add(dash.gameObject);
     }
 
     private GameObject CreateConnection(Vector2 dotPositionA, Vector2 dotPositionB)
@@ -293,7 +298,23 @@ public class GraphManager : MonoBehaviour
         return connection;
     }
 
-    private static float GetAngleFromVectorDegrees(Vector2 vector)
+    private int GetSignificantFigurePos(float number)
+    {
+        float absNumber = Math.Abs(number);
+
+        if (absNumber > 1) return 0;
+        
+        int decimalPlaces = 0;
+        while (Math.Floor(absNumber) == 0)
+        {
+            absNumber *= 10;
+            decimalPlaces++;
+        }
+
+        return decimalPlaces;
+    }
+
+    private float GetAngleFromVectorDegrees(Vector2 vector)
     {
         return (float) (Math.Atan(vector.y / vector.x) * 180 / Math.PI);
     }
