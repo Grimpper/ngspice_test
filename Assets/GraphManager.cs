@@ -124,7 +124,7 @@ public class GraphManager : MonoBehaviour
         
         for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
-            float normalizedValue = xSeparatorPos / xMax;
+            float normalizedValue = xSeparatorPos / (xMax - xMin);
             
             CreateLabel(labelTemplateX, new Vector2(normalizedValue * graphWidth, -8f), 
                 getAxisLabelX(xSeparatorPos));
@@ -134,7 +134,7 @@ public class GraphManager : MonoBehaviour
         
         for (float ySeparatorPos = yMin; ySeparatorPos <= yMax; ySeparatorPos += yStep)
         {
-            float normalizedValue = ySeparatorPos / yMax;
+            float normalizedValue = ySeparatorPos / (yMax - yMin);
             
             CreateLabel(labelTemplateY, new Vector2(-14f, normalizedValue * graphHeight),
                 getAxisLabelY(ySeparatorPos));
