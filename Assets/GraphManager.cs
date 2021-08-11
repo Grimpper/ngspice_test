@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditorInternal;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +8,7 @@ public class GraphManager : MonoBehaviour
 {
     [SerializeField] private Sprite circleSprite;
     [SerializeField] private bool startAtZero = false;
-    [SerializeField] private int numberOfPointsToDisplay = -1;
+    //[SerializeField] private int numberOfPointsToDisplay = -1;
     private const float MinYDiff = 5f;
     private RectTransform graphContainer;
     private RectTransform labelTemplateX;
@@ -80,15 +78,8 @@ public class GraphManager : MonoBehaviour
     private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int maxVisibleAmount = -1, 
         Func<float, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
-        getAxisLabelX ??= f =>
-        {
-            //f = (float) Math.Round(f, GetSignificantFigurePos(f) + 1);
-            return f.ToString();
-        };
-        getAxisLabelY ??= f =>
-        {
-            return f.ToString();
-        };
+        getAxisLabelX ??= f => Math.Round(f, GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
+        getAxisLabelY ??= f => Math.Round(f, GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
 
         foreach (GameObject gameObject in gameObjectsList)
         {
@@ -107,12 +98,11 @@ public class GraphManager : MonoBehaviour
         float graphWidth = graphContainer.sizeDelta.x;
         float graphHeight = graphContainer.sizeDelta.y;
 
-        var (yMin, yMax, yStep, startIndex) = getAxisValues(variable.Values, maxVisibleAmount);
-        var (xMin, xMax, xStep, _) = getAxisValues(time.Values);
+        var (yMin, yMax, yStep, startIndex) = GetAxisValues(variable.Values, maxVisibleAmount);
+        var (xMin, xMax, xStep, _) = GetAxisValues(time.Values);
 
         GameObject lastCircle = null;
-        int xIndex = 0;
-        for (int i = startIndex; i < variable.Values.Count; i++, xIndex++)
+        for (int i = startIndex; i < variable.Values.Count; i++)
         {
             float xPos = (time.Values[i] - xMin) / (xMax - xMin) * graphWidth;
             float yPos = (variable.Values[i] - yMin) / (yMax - yMin) * graphHeight;
@@ -228,9 +218,10 @@ public class GraphManager : MonoBehaviour
         }
     }*/
 
-    private (float min, float max, float step, int startIndex) getAxisValues(List<float> valueList, int? maxVisibleAmount = null)
+    private (float min, float max, float step, int startIndex) GetAxisValues(IReadOnlyList<float> valueList, 
+        int? maxVisibleAmount = null)
     {
-        int startIndex = Mathf.Max(valueList.Count - maxVisibleAmount ?? 0, 0);
+    int startIndex = Mathf.Max(valueList.Count - maxVisibleAmount ?? 0, 0);
         
         float max = valueList[0];
         float min = valueList[0];
@@ -302,7 +293,7 @@ public class GraphManager : MonoBehaviour
     {
         float absNumber = Math.Abs(number);
 
-        if (absNumber > 1) return 0;
+        if (absNumber > 1 || absNumber == 0) return 0;
         
         int decimalPlaces = 0;
         while (Math.Floor(absNumber) == 0)
