@@ -1059,4 +1059,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   circleSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   startAtZero: 1
-  minXDistanceBetweenPoints: 20
+  minDistanceBetweenPoints: 20
+  maxVisibleAmount: -1

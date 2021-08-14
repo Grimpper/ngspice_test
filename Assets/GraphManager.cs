@@ -9,9 +9,9 @@ public class GraphManager : MonoBehaviour
     [SerializeField] private Sprite circleSprite;
     [SerializeField] private bool startAtZero = false;
 
-    [SerializeField] private float minXDistanceBetweenPoints = 0;
+    [SerializeField] private float minDistanceBetweenPoints = 0;
+    [SerializeField] private int maxVisibleAmount = -1;
     
-    //[SerializeField] private int numberOfPointsToDisplay = -1;
     private const float MinYDiff = 5f;
     private RectTransform graphContainer;
     private RectTransform labelTemplateX;
@@ -34,7 +34,7 @@ public class GraphManager : MonoBehaviour
     {
         if (GUI.Button(new Rect(330, 10, 150, 50), "Show graph"))
         {
-            ShowGraph(2, SpiceParser.Variables);
+            ShowGraph(2, SpiceParser.Variables, maxVisibleAmount);
 
             //List<int> testList = new List<int>
             //{
@@ -112,8 +112,8 @@ public class GraphManager : MonoBehaviour
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
 
-            if (lastCircle && 
-                xPos - lastCircle.GetComponent<RectTransform>().anchoredPosition.x < minXDistanceBetweenPoints) 
+            if (lastCircle &&
+                (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 
                 continue;
             
             GameObject circle = CreateCircle(dataPoint);
