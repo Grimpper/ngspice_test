@@ -8,6 +8,9 @@ public class GraphManager : MonoBehaviour
 {
     [SerializeField] private Sprite circleSprite;
     [SerializeField] private bool startAtZero = false;
+
+    [SerializeField] private float minXDistanceBetweenPoints = 0;
+    
     //[SerializeField] private int numberOfPointsToDisplay = -1;
     private const float MinYDiff = 5f;
     private RectTransform graphContainer;
@@ -108,11 +111,16 @@ public class GraphManager : MonoBehaviour
             float yPos = (variable.Values[i] - yMin) / (yMax - yMin) * graphHeight;
             
             Vector2 dataPoint = new Vector2(xPos, yPos);
+
+            if (lastCircle && 
+                xPos - lastCircle.GetComponent<RectTransform>().anchoredPosition.x < minXDistanceBetweenPoints) 
+                continue;
             
             GameObject circle = CreateCircle(dataPoint);
             gameObjectsList.Add(circle);
 
-            if (lastCircle != null)
+
+            if (lastCircle && circle)
             {
                 GameObject connection = CreateConnection(lastCircle.GetComponent<RectTransform>().anchoredPosition,
                     circle.GetComponent<RectTransform>().anchoredPosition);
