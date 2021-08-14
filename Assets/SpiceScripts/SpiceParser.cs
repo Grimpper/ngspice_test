@@ -8,10 +8,23 @@ using UnityEngine;
 public class SpiceParser : MonoBehaviour
 {
     static readonly string Path = Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
+
+    private static string title = String.Empty;
+    private static string date = String.Empty;
+    private static string plotName = String.Empty;
+    private static string flags = String.Empty;
+    private static int varNum = 0;
+    private static int pointNum = 0;
     private static Dictionary<int, SpiceVariable> variables = new Dictionary<int, SpiceVariable>();
 
+    public static string Title => title;
+    public static string Date => date;
+    public static string PlotName => plotName;
+    public static string Flags => plotName;
+    public static string VarNum => plotName;
+    public static string PointNum => plotName;
     public static Dictionary<int, SpiceVariable> Variables => variables;
-    
+
     public static void WriteString(string str)
     {
         StreamWriter writer = new StreamWriter(Path, true);
@@ -22,32 +35,78 @@ public class SpiceParser : MonoBehaviour
     public static void ReadString()
     {
         Debug.Log("Reading from: " + Path);
-        
+
         StreamReader file = new StreamReader(Path);
 
-        ParseVariables(file, ref variables, VariableCount(file));
+        ParseInformation(file);
+        ParseVariables(file, ref variables, varNum);
         ParseValues(file, ref variables);
 
+        LogSpiceInfo();
         LogSpiceVariables(in variables);
-            
+
         file.Close();
     }
 
-    private static int VariableCount(in StreamReader file)
+    private static void ParseInformation(in StreamReader file)
     {
         string line;
-
+        
         while ((line = file.ReadLine()) != null)
         {
-            if (!line.Contains("No. Variables:")) continue;
+            Regex regex;
+            Match match;
             
-            Regex regexNumVar = new Regex(@"No. Variables: (\d+)");
-            Match varMatch = regexNumVar.Match(line);
-            
-            return int.Parse(varMatch.Groups[1].Value);
-        }
+            if (line.Contains("Title:"))
+            {
+                regex = new Regex(@"Title: (.*)");
+                match = regex.Match(line);
 
-        return -1;
+                title = match.Groups[1].Value;
+            }
+            
+            if (line.Contains("Date:"))
+            {
+                regex = new Regex(@"Date: (.*)");
+                match = regex.Match(line);
+
+                date = match.Groups[1].Value;
+            }
+            
+            if (line.Contains("Plotname:"))
+            {
+                regex = new Regex(@"Plotname: (.*)");
+                match = regex.Match(line);
+
+                plotName = match.Groups[1].Value;
+            }
+            
+            if (line.Contains("Flags:"))
+            {
+                regex = new Regex(@"Flags: (.*)");
+                match = regex.Match(line);
+
+                flags = match.Groups[1].Value;
+            }
+            
+            if (line.Contains("No. Variables:"))
+            {
+                regex = new Regex(@"No. Variables: (\d+)");
+                match = regex.Match(line);
+
+                varNum = int.Parse(match.Groups[1].Value);
+            }
+            
+            if (line.Contains("No. Points:"))
+            {
+                regex = new Regex(@"No. Points: (\d+)");
+                match = regex.Match(line);
+
+                pointNum = int.Parse(match.Groups[1].Value);
+                
+                break;
+            }
+        }
     }
 
     private static void ParseVariables(in StreamReader file, ref Dictionary<int, SpiceVariable> variables,
@@ -126,4 +185,13 @@ public class SpiceParser : MonoBehaviour
         }
     }
     
+    public static void LogSpiceInfo()
+    {
+        Debug.Log(title);
+        Debug.Log(date);
+        Debug.Log(plotName);
+        Debug.Log(flags);
+        Debug.Log(varNum);
+        Debug.Log(pointNum);
+    }
 }

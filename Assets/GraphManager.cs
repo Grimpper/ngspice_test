@@ -14,6 +14,9 @@ public class GraphManager : MonoBehaviour
     
     private const float MinYDiff = 5f;
     private RectTransform graphContainer;
+    private RectTransform title;
+    private RectTransform XAxisTitle;
+    private RectTransform YAxisTitle;
     private RectTransform labelTemplateX;
     private RectTransform labelTemplateY;
     private RectTransform dashTemplateX;
@@ -23,6 +26,9 @@ public class GraphManager : MonoBehaviour
     private void Awake()
     {
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
+        title = graphContainer.Find("Title").GetComponent<RectTransform>();
+        XAxisTitle = graphContainer.Find("X axis title").GetComponent<RectTransform>();
+        YAxisTitle = graphContainer.Find("Y axis title").GetComponent<RectTransform>();
         labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
         labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
         dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
@@ -63,21 +69,6 @@ public class GraphManager : MonoBehaviour
         }
     }*/
 
-    private GameObject CreateCircle(Vector2 anchoredPos)
-    {
-        GameObject dot = new GameObject("circle", typeof(Image));
-        dot.transform.SetParent(graphContainer, false);
-        dot.GetComponent<Image>().sprite = circleSprite;
-
-        RectTransform rectTransform = dot.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = anchoredPos;
-        rectTransform.sizeDelta = new Vector2(11, 11);
-        rectTransform.anchorMin = new Vector2(0, 0);
-        rectTransform.anchorMax = new Vector2(0, 0);
-
-        return dot;
-    }
-
     private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int maxVisibleAmount = -1, 
         Func<float, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
@@ -94,6 +85,8 @@ public class GraphManager : MonoBehaviour
         variables.TryGetValue(0, out SpiceVariable time);
         
         if (variable == null || time == null) return;
+
+        SetTitles(time, variable);
 
         if (maxVisibleAmount < 0)
             maxVisibleAmount = variable.Values.Count;
@@ -226,6 +219,33 @@ public class GraphManager : MonoBehaviour
         }
     }*/
 
+    private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
+    {
+        title.GetComponent<Text>().text = SpiceParser.Title;
+        title.gameObject.SetActive(true);
+        
+        XAxisTitle.GetComponent<Text>().text = xVariable.Name;
+        XAxisTitle.gameObject.SetActive(true);
+        
+        YAxisTitle.GetComponent<Text>().text = yVariable.Name;
+        YAxisTitle.gameObject.SetActive(true);
+    }
+    
+    private GameObject CreateCircle(Vector2 anchoredPos)
+    {
+        GameObject dot = new GameObject("circle", typeof(Image));
+        dot.transform.SetParent(graphContainer, false);
+        dot.GetComponent<Image>().sprite = circleSprite;
+
+        RectTransform rectTransform = dot.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = anchoredPos;
+        rectTransform.sizeDelta = new Vector2(11, 11);
+        rectTransform.anchorMin = new Vector2(0, 0);
+        rectTransform.anchorMax = new Vector2(0, 0);
+
+        return dot;
+    }
+    
     private (float min, float max, float step, int startIndex) GetAxisValues(IReadOnlyList<float> valueList, 
         int? maxVisibleAmount = null)
     {
