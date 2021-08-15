@@ -13,6 +13,8 @@ public class GraphManager : MonoBehaviour
     [SerializeField] private int maxVisibleAmount = -1;
     
     private const float MinYDiff = 5f;
+
+    #region GraphObjects
     private RectTransform graphContainer;
     private RectTransform title;
     private RectTransform XAxisTitle;
@@ -22,7 +24,23 @@ public class GraphManager : MonoBehaviour
     private RectTransform dashTemplateX;
     private RectTransform dashTemplateY;
     private List<GameObject> gameObjectsList;
+    #endregion
 
+    #region GraphData
+    private float graphWidth;
+    private float graphHeight;
+    
+    private float xMin;
+    private float xMax;
+    private float yMin;
+    private float yMax;
+
+    private float xStep;
+    private float yStep;
+
+    private int startIndex;
+    #endregion
+    
     private void Awake()
     {
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
@@ -91,19 +109,16 @@ public class GraphManager : MonoBehaviour
         if (maxVisibleAmount < 0)
             maxVisibleAmount = variable.Values.Count;
 
-        float graphWidth = graphContainer.sizeDelta.x;
-        float graphHeight = graphContainer.sizeDelta.y;
+        graphWidth = graphContainer.sizeDelta.x;
+        graphHeight = graphContainer.sizeDelta.y;
 
-        var (yMin, yMax, yStep, startIndex) = GetAxisValues(variable.Values, maxVisibleAmount);
-        var (xMin, xMax, xStep, _) = GetAxisValues(time.Values);
+        (yMin, yMax, yStep, startIndex) = GetAxisValues(variable.Values, maxVisibleAmount);
+        (xMin, xMax, xStep, _) = GetAxisValues(time.Values);
 
         GameObject lastCircle = null;
         for (int i = startIndex; i < variable.Values.Count; i++)
         {
-            float xPos = (time.Values[i] - xMin) / (xMax - xMin) * graphWidth;
-            float yPos = (variable.Values[i] - yMin) / (yMax - yMin) * graphHeight;
-            
-            Vector2 dataPoint = new Vector2(xPos, yPos);
+            Vector2 dataPoint = new Vector2(GetGraphPosX(time.Values[i]), GetGraphPosY(variable.Values[i]));
 
             if (lastCircle &&
                 (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 
@@ -125,21 +140,16 @@ public class GraphManager : MonoBehaviour
         
         for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
-            float normalizedValue = xSeparatorPos / (xMax - xMin);
-            
-            CreateLabel(labelTemplateX, new Vector2(normalizedValue * graphWidth, -8f), 
-                getAxisLabelX(xSeparatorPos));
-            CreateDash(dashTemplateX, new Vector2(normalizedValue * graphWidth, -5f));
-
+            float graphPosX = GetGraphPosX(xSeparatorPos);
+            CreateLabel(labelTemplateX, new Vector2(graphPosX, -8f), getAxisLabelX(xSeparatorPos));
+            CreateDash(dashTemplateX, new Vector2(graphPosX, -5f));
         }
         
         for (float ySeparatorPos = yMin; ySeparatorPos <= yMax; ySeparatorPos += yStep)
         {
-            float normalizedValue = ySeparatorPos / (yMax - yMin);
-            
-            CreateLabel(labelTemplateY, new Vector2(-14f, normalizedValue * graphHeight),
-                getAxisLabelY(ySeparatorPos));
-            CreateDash(dashTemplateY,new Vector2(-4, normalizedValue * graphHeight));
+            float graphPosY = GetGraphPosY(ySeparatorPos);
+            CreateLabel(labelTemplateY, new Vector2(-14f, graphPosY), getAxisLabelY(ySeparatorPos));
+            CreateDash(dashTemplateY,new Vector2(-4, graphPosY));
         }
     }
     
@@ -219,6 +229,10 @@ public class GraphManager : MonoBehaviour
         }
     }*/
 
+    private float GetGraphPosX(float xPos) => (xPos - xMin) / (xMax - xMin) * graphWidth;
+    
+    private float GetGraphPosY(float yPos) => (yPos - yMin) / (yMax - yMin) * graphHeight;
+    
     private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
     {
         title.GetComponent<Text>().text = SpiceParser.Title;
@@ -268,7 +282,7 @@ public class GraphManager : MonoBehaviour
         int significantFigurePos = GetSignificantFigurePos(diff);
         float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
 
-        float step = Mathf.Pow(10, -significantFigurePos) / (significantFigure > 5 ? 1f : 2f);
+        float step = Mathf.Pow(10, -significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
 
         max += step;
         min -= step;

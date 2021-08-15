@@ -32,7 +32,7 @@ public class SpiceParser : MonoBehaviour
         writer.Close();
     }
 
-    public static void ReadString()
+    public static void ReadString(bool debug = false)
     {
         Debug.Log("Reading from: " + Path);
 
@@ -42,8 +42,11 @@ public class SpiceParser : MonoBehaviour
         ParseVariables(file, ref variables, varNum);
         ParseValues(file, ref variables);
 
-        LogSpiceInfo();
-        LogSpiceVariables(in variables);
+        if (debug)
+        {
+            LogSpiceInfo();
+            LogSpiceVariables(in variables);
+        }
 
         file.Close();
     }
