@@ -115,28 +115,7 @@ public class GraphManager : MonoBehaviour
         (yMin, yMax, yStep, startIndex) = GetAxisValues(variable.Values, maxVisibleAmount);
         (xMin, xMax, xStep, _) = GetAxisValues(time.Values);
 
-        GameObject lastCircle = null;
-        for (int i = startIndex; i < variable.Values.Count; i++)
-        {
-            Vector2 dataPoint = new Vector2(GetGraphPosX(time.Values[i]), GetGraphPosY(variable.Values[i]));
-
-            if (lastCircle &&
-                (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 
-                continue;
-            
-            GameObject circle = CreateCircle(dataPoint);
-            gameObjectsList.Add(circle);
-
-
-            if (lastCircle && circle)
-            {
-                GameObject connection = CreateConnection(lastCircle.GetComponent<RectTransform>().anchoredPosition,
-                    circle.GetComponent<RectTransform>().anchoredPosition);
-                gameObjectsList.Add(connection);
-            }
-
-            lastCircle = circle;
-        }
+        CreateDotsAndConnections(time, variable);
         
         for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
@@ -229,6 +208,34 @@ public class GraphManager : MonoBehaviour
         }
     }*/
 
+    private void CreateDotsAndConnections(in SpiceVariable time, in SpiceVariable variable)
+    {
+        
+        GameObject lastCircle = null;
+        
+        for (int i = startIndex; i < variable.Values.Count; i++)
+        {
+            Vector2 dataPoint = new Vector2(GetGraphPosX(time.Values[i]), GetGraphPosY(variable.Values[i]));
+
+            if (lastCircle &&
+                (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 
+                continue;
+            
+            GameObject circle = CreateCircle(dataPoint);
+            gameObjectsList.Add(circle);
+
+
+            if (lastCircle && circle)
+            {
+                GameObject connection = CreateConnection(lastCircle.GetComponent<RectTransform>().anchoredPosition,
+                    circle.GetComponent<RectTransform>().anchoredPosition);
+                gameObjectsList.Add(connection);
+            }
+
+            lastCircle = circle;
+        }
+    }
+    
     private float GetGraphPosX(float xPos) => (xPos - xMin) / (xMax - xMin) * graphWidth;
     
     private float GetGraphPosY(float yPos) => (yPos - yMin) / (yMax - yMin) * graphHeight;
