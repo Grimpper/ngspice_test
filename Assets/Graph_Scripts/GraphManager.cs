@@ -44,6 +44,9 @@ public class GraphManager : MonoBehaviour
     private void Awake()
     {
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
+        graphWidth = graphContainer.sizeDelta.x;
+        graphHeight = graphContainer.sizeDelta.y;
+        
         title = graphContainer.Find("Title").GetComponent<RectTransform>();
         XAxisTitle = graphContainer.Find("X axis title").GetComponent<RectTransform>();
         YAxisTitle = graphContainer.Find("Y axis title").GetComponent<RectTransform>();
@@ -57,66 +60,57 @@ public class GraphManager : MonoBehaviour
     private void OnGUI()
     {
         if (GUI.Button(new Rect(330, 10, 150, 50), "Show graph"))
-        {
             ShowGraph(2, SpiceParser.Variables, maxVisibleAmount);
-
-            //List<int> testList = new List<int>
-            //{
-            //    5, 98, 56, 46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33, 5, 98, 56,
-            //    46, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33
-            //};
-            //ShowGraphTest(testList, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
-            //testList[0] = 20;
-            //ShowGraphTest(testList, _i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
-            
-            //StartCoroutine(ShowRandomGraph(15, 0.5f));
-        }
     }
 
-    /*private IEnumerator ShowRandomGraph(int size, float repeatRate)
-    {
-        while (true)
-        {
-            List <int> list = new List<int>();
-            for (int i = 0; i < size; i++)
-                list.Add(UnityEngine.Random.Range(0, 500));
-            
-            ShowGraphTest(list, numberOfPointsToDisplay,_i => "Day " + (_i + 1), _f => "$" + Mathf.RoundToInt(_f));
-
-            yield return new WaitForSeconds(repeatRate);
-        }
-    }*/
-
-    private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int maxVisibleAmount = -1, 
+    private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int visibleAmount = -1, 
         Func<float, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
-        getAxisLabelX ??= f => Math.Round(f, GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
-        getAxisLabelY ??= f => Math.Round(f, GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
+        getAxisLabelX ??= f => 
+            Math.Round(f, NumberUtils.GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
+        getAxisLabelY ??= f => 
+            Math.Round(f, NumberUtils.GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
 
-        foreach (GameObject gameObject in gameObjectsList)
+        EmptyGameObjectList(gameObjectsList);
+
+        if (!variables.TryGetValue(0, out var xVariable) || !variables.TryGetValue(variableIndex, out var yVariable))
+            return;
+        
+        if (visibleAmount < 0) 
+            visibleAmount = yVariable.Values.Count;
+
+        (yMin, yMax, yStep, startIndex) = GetAxisValues(yVariable.Values, visibleAmount);
+        (xMin, xMax, xStep, _) = GetAxisValues(xVariable.Values);
+
+        SetTitles(xVariable, yVariable);
+        CreateLabelsAndDashes(getAxisLabelX, getAxisLabelY);
+        CreateDotsAndConnections(xVariable, yVariable);
+
+    }
+    
+    private void EmptyGameObjectList(List<GameObject> list)
+    {
+        foreach (GameObject element in list)
         {
-            Destroy(gameObject);
+            Destroy(element);
         }
-        gameObjectsList.Clear();
+        list.Clear();
+    }
+
+    private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
+    {
+        title.GetComponent<Text>().text = SpiceParser.Title;
+        title.gameObject.SetActive(true);
         
-        variables.TryGetValue(variableIndex, out SpiceVariable variable);
-        variables.TryGetValue(0, out SpiceVariable time);
+        XAxisTitle.GetComponent<Text>().text = xVariable.Name;
+        XAxisTitle.gameObject.SetActive(true);
         
-        if (variable == null || time == null) return;
-
-        SetTitles(time, variable);
-
-        if (maxVisibleAmount < 0)
-            maxVisibleAmount = variable.Values.Count;
-
-        graphWidth = graphContainer.sizeDelta.x;
-        graphHeight = graphContainer.sizeDelta.y;
-
-        (yMin, yMax, yStep, startIndex) = GetAxisValues(variable.Values, maxVisibleAmount);
-        (xMin, xMax, xStep, _) = GetAxisValues(time.Values);
-
-        CreateDotsAndConnections(time, variable);
-        
+        YAxisTitle.GetComponent<Text>().text = yVariable.Name;
+        YAxisTitle.gameObject.SetActive(true);
+    }
+    
+    private void CreateLabelsAndDashes(Func<float, string> getAxisLabelX, Func<float, string> getAxisLabelY)
+    {
         for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
             float graphPosX = GetGraphPosX(xSeparatorPos);
@@ -132,82 +126,6 @@ public class GraphManager : MonoBehaviour
         }
     }
     
-    /*private void ShowGraphTest(List<int> testList, int maxVisibleAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
-    {
-        getAxisLabelX ??= _i => _i.ToString();
-        getAxisLabelY ??= _f => Mathf.RoundToInt(_f).ToString();
-        
-        if (maxVisibleAmount < 0)
-            maxVisibleAmount = testList.Count;
-        
-        foreach (GameObject gameObject in gameObjectsList)
-        {
-            Destroy(gameObject);
-        }
-        gameObjectsList.Clear();
-        
-        float graphWidth = graphContainer.sizeDelta.x;
-        float graphHeight = graphContainer.sizeDelta.y;
-        
-        int startIndex = Mathf.Max(testList.Count - maxVisibleAmount, 0);
-        
-        float xSize = graphWidth / (maxVisibleAmount + 1);
-        
-        float yMax = testList[0];
-        float yMin = testList[0];
-
-        for (int i = startIndex; i < testList.Count; i++)
-        {
-            int value = testList[i];
-            if (value > yMax)
-                yMax = value;
-            else if (value < yMin)
-                yMin = value;
-        }
-
-        float yDiff = yMax - yMin <= 0 ? MinYDiff : yMax - yMin;
-        yMax += yDiff * 0.2f;
-        yMin -= yDiff * 0.2f;
-
-        if (startAtZero)
-            yMin = 0;
-        
-        GameObject lastCircle = null;
-        int xIndex = 0;
-        for (int i = startIndex; i < testList.Count; i++, xIndex++)
-        {
-            float xPos = xSize + xIndex * xSize;
-            float yPos = (testList[i] - yMin) / (yMax - yMin) * graphHeight;
-            
-            Vector2 dataPoint = new Vector2(xPos, yPos);
-            
-            GameObject circle = CreateCircle(dataPoint);
-            gameObjectsList.Add(circle);
-
-            if (lastCircle != null)
-            {
-                GameObject connection = CreateConnection(lastCircle.GetComponent<RectTransform>().anchoredPosition,
-                    circle.GetComponent<RectTransform>().anchoredPosition);
-                gameObjectsList.Add(connection);
-            }
-
-            lastCircle = circle;
-
-            CreateLabel(labelTemplateX, new Vector2(xPos, -8f), getAxisLabelX(i));
-            CreateDash(dashTemplateX, new Vector2(xPos, -5f));
-        }
-
-        int separatorCount = 10;
-        for (int i = 0; i <= separatorCount; i++)
-        {
-            float normalizedValue = (float) i / separatorCount;
-            
-            CreateLabel(labelTemplateY, new Vector2(-14f, normalizedValue * graphHeight),
-                getAxisLabelY(yMin + normalizedValue * (yMax - yMin)));
-            CreateDash(dashTemplateY,new Vector2(-4, normalizedValue * graphHeight));
-        }
-    }*/
-
     private void CreateDotsAndConnections(in SpiceVariable time, in SpiceVariable variable)
     {
         
@@ -236,22 +154,6 @@ public class GraphManager : MonoBehaviour
         }
     }
     
-    private float GetGraphPosX(float xPos) => (xPos - xMin) / (xMax - xMin) * graphWidth;
-    
-    private float GetGraphPosY(float yPos) => (yPos - yMin) / (yMax - yMin) * graphHeight;
-    
-    private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
-    {
-        title.GetComponent<Text>().text = SpiceParser.Title;
-        title.gameObject.SetActive(true);
-        
-        XAxisTitle.GetComponent<Text>().text = xVariable.Name;
-        XAxisTitle.gameObject.SetActive(true);
-        
-        YAxisTitle.GetComponent<Text>().text = yVariable.Name;
-        YAxisTitle.gameObject.SetActive(true);
-    }
-    
     private GameObject CreateCircle(Vector2 anchoredPos)
     {
         GameObject dot = new GameObject("circle", typeof(Image));
@@ -267,15 +169,18 @@ public class GraphManager : MonoBehaviour
         return dot;
     }
     
+    private float GetGraphPosX(float xPos) => (xPos - xMin) / (xMax - xMin) * graphWidth;
+    private float GetGraphPosY(float yPos) => (yPos - yMin) / (yMax - yMin) * graphHeight;
+
     private (float min, float max, float step, int startIndex) GetAxisValues(IReadOnlyList<float> valueList, 
-        int? maxVisibleAmount = null)
+        int? visibleAmount = null)
     {
-    int startIndex = Mathf.Max(valueList.Count - maxVisibleAmount ?? 0, 0);
+    int startValueIndex = Mathf.Max(valueList.Count - visibleAmount ?? 0, 0);
         
         float max = valueList[0];
         float min = valueList[0];
         
-        for (int i = startIndex; i < valueList.Count; i++)
+        for (int i = startValueIndex; i < valueList.Count; i++)
         {
             float value = valueList[i];
             if (value > max)
@@ -286,7 +191,7 @@ public class GraphManager : MonoBehaviour
 
         float diff = max - min <= 0 ? MinYDiff : max - min;
         
-        int significantFigurePos = GetSignificantFigurePos(diff);
+        int significantFigurePos = NumberUtils.GetSignificantFigurePos(diff);
         float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
 
         float step = Mathf.Pow(10, -significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
@@ -297,7 +202,7 @@ public class GraphManager : MonoBehaviour
         if (startAtZero)
             min = 0;
 
-        return (min , max, step, startIndex);
+        return (min , max, step, startValueIndex);
     }   
     
     private void CreateLabel(RectTransform labelTemplate, Vector2 position, string labelText)
@@ -333,29 +238,9 @@ public class GraphManager : MonoBehaviour
         rectTransform.anchorMax = new Vector2(0, 0);
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositionA +  0.5f * distance * dir;
-        rectTransform.localEulerAngles = new Vector3(0, 0, GetAngleFromVectorDegrees(dir));
+        rectTransform.localEulerAngles = 
+            new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Unit.degrees));
 
         return connection;
-    }
-
-    private int GetSignificantFigurePos(float number)
-    {
-        float absNumber = Math.Abs(number);
-
-        if (absNumber > 1 || absNumber == 0) return 0;
-        
-        int decimalPlaces = 0;
-        while (Math.Floor(absNumber) == 0)
-        {
-            absNumber *= 10;
-            decimalPlaces++;
-        }
-
-        return decimalPlaces;
-    }
-
-    private float GetAngleFromVectorDegrees(Vector2 vector)
-    {
-        return (float) (Math.Atan(vector.y / vector.x) * 180 / Math.PI);
     }
 }   
