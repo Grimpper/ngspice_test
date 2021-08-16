@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -166,7 +165,7 @@ public class SpiceParser : MonoBehaviour
                 
                 //Debug.Log("Value: " + varMatch.Groups[2].Value);
                 
-                variable?.Values.Add(float.Parse(varMatch.Groups[2].Value));
+                variable?.values.Add(float.Parse(varMatch.Groups[2].Value));
             }
         }
     }
@@ -181,7 +180,7 @@ public class SpiceParser : MonoBehaviour
             
             Debug.Log(variable.Name + ": \n");
 
-            foreach (float value in variable.Values)
+            foreach (float value in variable.GetValues())
             {
                 Debug.Log(value + ", ");
             }

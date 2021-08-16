@@ -75,16 +75,18 @@ public class GraphManager : MonoBehaviour
 
         if (!variables.TryGetValue(0, out var xVariable) || !variables.TryGetValue(variableIndex, out var yVariable))
             return;
+        List<float> xValues = xVariable.GetValues();
+        List<float> yValues = yVariable.GetValues();
         
         if (visibleAmount < 0) 
-            visibleAmount = yVariable.Values.Count;
+            visibleAmount = yVariable.GetValues().Count;
 
-        (yMin, yMax, yStep, startIndex) = GetAxisValues(yVariable.Values, visibleAmount);
-        (xMin, xMax, xStep, _) = GetAxisValues(xVariable.Values);
+        (yMin, yMax, yStep, startIndex) = GetAxisValues(yValues, visibleAmount);
+        (xMin, xMax, xStep, _) = GetAxisValues(xValues);
 
         SetTitles(xVariable, yVariable);
         CreateLabelsAndDashes(getAxisLabelX, getAxisLabelY);
-        CreateDotsAndConnections(xVariable, yVariable);
+        CreateDotsAndConnections(xValues, yValues);
 
     }
     
@@ -136,14 +138,14 @@ public class GraphManager : MonoBehaviour
         }
     }
     
-    private void CreateDotsAndConnections(in SpiceVariable time, in SpiceVariable variable)
+    private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
     {
         
         GameObject lastCircle = null;
         
-        for (int i = startIndex; i < variable.Values.Count; i++)
+        for (int i = startIndex; i < yValues.Count; i++)
         {
-            Vector2 dataPoint = new Vector2(GetGraphPosX(time.Values[i]), GetGraphPosY(variable.Values[i]));
+            Vector2 dataPoint = new Vector2(GetGraphPosX(xValues[i]), GetGraphPosY(yValues[i]));
 
             if (lastCircle &&
                 (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 

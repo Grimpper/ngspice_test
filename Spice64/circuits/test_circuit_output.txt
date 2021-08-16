@@ -1,5 +1,5 @@
 Title: dual rc ladder
-Date: Mon Aug 16 17:52:41  2021
+Date: Mon Aug 16 19:23:16  2021
 Plotname: Transient Analysis
 Flags: real
 No. Variables: 5

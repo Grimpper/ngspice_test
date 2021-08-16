@@ -24,7 +24,7 @@ public class Ngspice : MonoBehaviour
        
         if (GUI.Button(new Rect(170, 10, 150, 50), "Read output"))
         {
-           SpiceParser.ReadString(); 
+           SpiceParser.ReadString(debug); 
         }
     }
 
