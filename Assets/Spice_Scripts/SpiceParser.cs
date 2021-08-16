@@ -120,8 +120,6 @@ public class SpiceParser : MonoBehaviour
         while ((line = file.ReadLine()) != null)
         {
             if (!line.Equals("Variables:")) continue;
-            
-            //Debug.Log("Variables found");
 
             Regex regexVariables = new Regex(@"\t(\d)\t(.+)\t(.+)");
 
@@ -130,12 +128,12 @@ public class SpiceParser : MonoBehaviour
                 if ((line = file.ReadLine()) == null) break;
                 
                 Match varMatch = regexVariables.Match(line);
-                SpiceVariable variable = new SpiceVariable(varMatch.Groups[2].Value, new List<float>());
-
-                //Debug.Log("Line: " + line);
+                
+                SpiceVariable variable = varMatch.Groups[2].Value == "time" ? 
+                    new TimeSpiceVariable(varMatch.Groups[2].Value, new List<float>()) :
+                    new SpiceVariable(varMatch.Groups[2].Value, new List<float>());
 
                 variables.Add(int.Parse(varMatch.Groups[1].Value), variable);
-                //Debug.Log("groups: " + varMatch.Groups[1].Value + " -- " + variable.Name);
             }
             
             break;
@@ -151,7 +149,6 @@ public class SpiceParser : MonoBehaviour
             if (!valuesFound && !line.Equals("Values:")) continue;
 
             valuesFound = true;
-            //Debug.Log("Values found");
 
             Regex regexValues = new Regex(@"( \d)?\t(.+)");
             
@@ -162,8 +159,6 @@ public class SpiceParser : MonoBehaviour
                 variables.TryGetValue(i, out SpiceVariable variable);
                 
                 Match varMatch = regexValues.Match(line);
-                
-                //Debug.Log("Value: " + varMatch.Groups[2].Value);
                 
                 variable?.values.Add(float.Parse(varMatch.Groups[2].Value));
             }

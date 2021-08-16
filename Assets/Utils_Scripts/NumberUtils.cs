@@ -5,6 +5,31 @@ using UnityEngine;
 
 public class NumberUtils : MonoBehaviour
 {
+    public enum Unit
+    {
+        Y = 24,
+        Z = 21,
+        E = 18,
+        P = 15,
+        T = 12,
+        G = 9,
+        M = 6,
+        k = 3,
+        h = 2,
+        D = 1,
+        Unitary = 0,
+        d = -1,
+        c = -2,
+        m = -3,
+        u = -6,
+        n = -9,
+        p = -12,
+        f = -15,
+        a = -18,
+        z = -21,
+        y = -24,
+    }
+    
     public const string
         Radians = "rad",
         Degrees = "°",
@@ -16,14 +41,20 @@ public class NumberUtils : MonoBehaviour
     {
         float absNumber = Math.Abs(number);
 
-        // TODO fix sigFigPos for numbers beyond 1
-        if (absNumber > 1 || absNumber == 0) return 0;
+        if (absNumber == 0) 
+            return 0;
         
         int decimalPlaces = 0;
-        while (Math.Floor(absNumber) == 0)
+
+        if (absNumber < 1)
         {
-            absNumber *= 10;
-            decimalPlaces++;
+            while ((absNumber *= 10f) < 1)
+                decimalPlaces--;
+        }
+        else
+        {
+            while ((absNumber /= 10f) > 1)
+                decimalPlaces++;
         }
 
         return decimalPlaces;
@@ -37,30 +68,5 @@ public class NumberUtils : MonoBehaviour
             _ => null
         };
 
-    public static float GetMagnitude(char magnitude) =>
-        magnitude switch
-        {
-            'Y' => Mathf.Pow(10, 24),
-            'Z' => Mathf.Pow(10, 21),
-            'E' => Mathf.Pow(10, 18),
-            'P' => Mathf.Pow(10, 15),
-            'T' => Mathf.Pow(10, 12),
-            'G' => Mathf.Pow(10, 9),
-            'M' => Mathf.Pow(10, 6),
-            'k' => Mathf.Pow(10, 3),
-            'h' => Mathf.Pow(10, 2),
-            'D' => Mathf.Pow(10, 1),
-            ' ' => Mathf.Pow(10, 0),
-            'd' => Mathf.Pow(10, -1),
-            'c' => Mathf.Pow(10, -2),
-            'm' => Mathf.Pow(10, -3),
-            'u' => Mathf.Pow(10, -6),
-            'n' => Mathf.Pow(10, -9),
-            'p' => Mathf.Pow(10, -12),
-            'f' => Mathf.Pow(10, -15),
-            'a' => Mathf.Pow(10, -18),
-            'z' => Mathf.Pow(10, -21),
-            'y' => Mathf.Pow(10, -24),
-            _ => throw new ArgumentOutOfRangeException(nameof(magnitude), magnitude, null)
-        };
+    public static float GetMagnitude(Unit unit) => Mathf.Pow(10, (int) unit);
 }

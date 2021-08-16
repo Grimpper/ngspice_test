@@ -18,7 +18,7 @@ public class Ngspice : MonoBehaviour
             ngspiceProcess.Start();
             LogRunningProcessName("ngspice_con");
 
-            if (debug) Debug.Log(ngspiceProcess.StandardOutput.ReadToEnd());
+            ngspiceProcess.StandardOutput.ReadToEnd();
             ngspiceProcess.WaitForExit();
         }
        

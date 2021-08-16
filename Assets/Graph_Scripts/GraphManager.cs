@@ -75,7 +75,7 @@ public class GraphManager : MonoBehaviour
 
         if (!variables.TryGetValue(0, out var xVariable) || !variables.TryGetValue(variableIndex, out var yVariable))
             return;
-        List<float> xValues = xVariable.GetValues();
+        List<float> xValues = xVariable.GetValues(NumberUtils.Unit.m);
         List<float> yValues = yVariable.GetValues();
         
         if (visibleAmount < 0) 
@@ -106,18 +106,18 @@ public class GraphManager : MonoBehaviour
 
         string unit = String.Empty;
 
-        if (xVariable.Name.Equals("time"))
+        if (xVariable.DisplayName.Equals("time"))
             unit = " (" + NumberUtils.Time + ")";
 
-        xAxisTitle.GetComponent<Text>().text = xVariable.Name + unit;
+        xAxisTitle.GetComponent<Text>().text = xVariable.DisplayName + unit;
         xAxisTitle.gameObject.SetActive(true);
         
-        if (yVariable.Name.StartsWith("v"))
+        if (yVariable.DisplayName.StartsWith("v"))
             unit = " (" + NumberUtils.Voltage + ")";
-        else if (yVariable.Name.StartsWith("i"))
+        else if (yVariable.DisplayName.StartsWith("i"))
             unit = " (" + NumberUtils.Intensity + ")";
         
-        yAxisTitle.GetComponent<Text>().text = yVariable.Name + unit;
+        yAxisTitle.GetComponent<Text>().text = yVariable.DisplayName + unit;
         yAxisTitle.gameObject.SetActive(true);
     }
     
@@ -206,8 +206,8 @@ public class GraphManager : MonoBehaviour
         int significantFigurePos = NumberUtils.GetSignificantFigurePos(diff);
         float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
 
-        float step = Mathf.Pow(10, -significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
-
+        float step = Mathf.Pow(10, significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
+        
         max += step;
         min -= step;
         
