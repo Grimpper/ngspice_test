@@ -5,12 +5,13 @@ using UnityEngine;
 
 public class NumberUtils : MonoBehaviour
 {
-    public enum Unit
-    {
-        radians,
-        degrees
-    }
-    
+    public const string
+        Radians = "rad",
+        Degrees = "°",
+        Time = "s",
+        Voltage = "V",
+        Intensity = "I";
+
     public static int GetSignificantFigurePos(float number)
     {
         float absNumber = Math.Abs(number);
@@ -27,13 +28,11 @@ public class NumberUtils : MonoBehaviour
         return decimalPlaces;
     }
 
-    public static float GetAngleFromVector(Vector2 vector, Unit unit = Unit.radians)
-    {
-        if (unit == Unit.degrees)
+    public static float? GetAngleFromVector(Vector2 vector, string unit = Radians) =>
+        unit switch
         {
-            return (float) (Math.Atan(vector.y / vector.x) * 180 / Math.PI);
-        }
-        
-        return (float) Math.Atan(vector.y / vector.x);
-    }
+            Degrees => (float)(Math.Atan(vector.y / vector.x) * 180 / Math.PI),
+            Radians => (float)Math.Atan(vector.y / vector.x),
+            _ => null
+        };
 }

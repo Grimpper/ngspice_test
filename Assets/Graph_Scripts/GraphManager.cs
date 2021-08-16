@@ -17,8 +17,8 @@ public class GraphManager : MonoBehaviour
     #region GraphObjects
     private RectTransform graphContainer;
     private RectTransform title;
-    private RectTransform XAxisTitle;
-    private RectTransform YAxisTitle;
+    private RectTransform xAxisTitle;
+    private RectTransform yAxisTitle;
     private RectTransform labelTemplateX;
     private RectTransform labelTemplateY;
     private RectTransform dashTemplateX;
@@ -48,8 +48,8 @@ public class GraphManager : MonoBehaviour
         graphHeight = graphContainer.sizeDelta.y;
         
         title = graphContainer.Find("Title").GetComponent<RectTransform>();
-        XAxisTitle = graphContainer.Find("X axis title").GetComponent<RectTransform>();
-        YAxisTitle = graphContainer.Find("Y axis title").GetComponent<RectTransform>();
+        xAxisTitle = graphContainer.Find("X axis title").GetComponent<RectTransform>();
+        yAxisTitle = graphContainer.Find("Y axis title").GetComponent<RectTransform>();
         labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
         labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
         dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
@@ -102,11 +102,11 @@ public class GraphManager : MonoBehaviour
         title.GetComponent<Text>().text = SpiceParser.Title;
         title.gameObject.SetActive(true);
         
-        XAxisTitle.GetComponent<Text>().text = xVariable.Name;
-        XAxisTitle.gameObject.SetActive(true);
+        xAxisTitle.GetComponent<Text>().text = xVariable.Name;
+        xAxisTitle.gameObject.SetActive(true);
         
-        YAxisTitle.GetComponent<Text>().text = yVariable.Name;
-        YAxisTitle.gameObject.SetActive(true);
+        yAxisTitle.GetComponent<Text>().text = yVariable.Name;
+        yAxisTitle.gameObject.SetActive(true);
     }
     
     private void CreateLabelsAndDashes(Func<float, string> getAxisLabelX, Func<float, string> getAxisLabelY)
@@ -239,7 +239,7 @@ public class GraphManager : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositionA +  0.5f * distance * dir;
         rectTransform.localEulerAngles = 
-            new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Unit.degrees));
+            new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Degrees) ?? 0f);
 
         return connection;
     }
