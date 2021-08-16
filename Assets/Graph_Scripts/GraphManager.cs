@@ -101,11 +101,21 @@ public class GraphManager : MonoBehaviour
     {
         title.GetComponent<Text>().text = SpiceParser.Title;
         title.gameObject.SetActive(true);
-        
-        xAxisTitle.GetComponent<Text>().text = xVariable.Name;
+
+        string unit = String.Empty;
+
+        if (xVariable.Name.Equals("time"))
+            unit = " (" + NumberUtils.Time + ")";
+
+        xAxisTitle.GetComponent<Text>().text = xVariable.Name + unit;
         xAxisTitle.gameObject.SetActive(true);
         
-        yAxisTitle.GetComponent<Text>().text = yVariable.Name;
+        if (yVariable.Name.StartsWith("v"))
+            unit = " (" + NumberUtils.Voltage + ")";
+        else if (yVariable.Name.StartsWith("i"))
+            unit = " (" + NumberUtils.Intensity + ")";
+        
+        yAxisTitle.GetComponent<Text>().text = yVariable.Name + unit;
         yAxisTitle.gameObject.SetActive(true);
     }
     
