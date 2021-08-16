@@ -15,6 +15,4 @@ public class SpiceVariable
         this.name = name;
         this.values = values;
     }
-    
-    //public static implicit operator bool(SpiceVariable instance) => instance != null;
 }
