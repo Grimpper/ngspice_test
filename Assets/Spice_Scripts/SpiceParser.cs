@@ -6,8 +6,7 @@ using UnityEngine;
 
 public class SpiceParser : MonoBehaviour
 {
-    static readonly string Path = Directory.GetCurrentDirectory() + "/Spice64/circuits/test_circuit_output.txt";
-
+    private static string PathToRead;
     private static string title = String.Empty;
     private static string date = String.Empty;
     private static string plotName = String.Empty;
@@ -24,22 +23,46 @@ public class SpiceParser : MonoBehaviour
     public static string PointNum => plotName;
     public static Dictionary<int, SpiceVariable> Variables => variables;
 
+    private static string GetOutputPath(string inputPath)
+    {
+        StreamReader inputFile = new StreamReader(inputPath);
+        string line;
+        
+        while ((line = inputFile.ReadLine()) != null)
+        {
+            if (!line.Contains("write ")) 
+                continue;
+            
+            Regex regex = new Regex(@"write (.*)");
+            Match match = regex.Match(line);
+
+            return match.Groups[1].Value;
+        }
+
+        return null;
+    }
+    
     public static void WriteString(string str)
     {
-        StreamWriter writer = new StreamWriter(Path, true);
+        StreamWriter writer = new StreamWriter(PathToRead, true);
         writer.WriteLine(str);
         writer.Close();
     }
 
-    public static void ReadString(bool debug = false)
+    public static void ReadFile(bool debug = false)
     {
-        Debug.Log("Reading from: " + Path);
+        PathToRead = GetOutputPath(SpiceManager.GetProcess().StartInfo.Arguments);
 
-        StreamReader file = new StreamReader(Path);
+        if (PathToRead == null) 
+            return;
+        
+        Debug.Log("Reading from: " + PathToRead);
+        
+        StreamReader outputFile = new StreamReader(PathToRead);
 
-        ParseInformation(file);
-        ParseVariables(file, ref variables, varNum);
-        ParseValues(file, ref variables);
+        ParseInformation(outputFile);
+        ParseVariables(outputFile, ref variables, varNum);
+        ParseValues(outputFile, ref variables);
 
         if (debug)
         {
@@ -47,7 +70,7 @@ public class SpiceParser : MonoBehaviour
             LogSpiceVariables(in variables);
         }
 
-        file.Close();
+        outputFile.Close();
     }
 
     private static void ParseInformation(in StreamReader file)

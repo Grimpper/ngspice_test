@@ -17,7 +17,7 @@ public class SpiceManager : MonoBehaviour
             StartInfo =
             {
                 FileName = "F:\\Unity_Projects\\ngspice_test\\Spice64\\bin\\ngspice_con.exe",
-                Arguments = "F:\\Unity_Projects\\ngspice_test\\Spice64\\circuits\\test_circuit.cir",
+                Arguments = "F:\\Unity_Projects\\ngspice_test\\Spice64\\circuits\\bipolar_amp.cir",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true
