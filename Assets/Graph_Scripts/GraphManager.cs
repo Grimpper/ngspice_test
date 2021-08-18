@@ -14,6 +14,7 @@ public class GraphManager : MonoBehaviour
 
     #region GraphObjects
     private RectTransform graphContainer;
+    private RectTransform graphBackground;
     private RectTransform title;
     private RectTransform xAxisTitle;
     private RectTransform yAxisTitle;
@@ -41,6 +42,8 @@ public class GraphManager : MonoBehaviour
     
     private void Awake()
     {
+        graphBackground = transform.Find("Background").GetComponent<RectTransform>();
+        
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
         graphWidth = graphContainer.sizeDelta.x;
         graphHeight = graphContainer.sizeDelta.y;
@@ -81,6 +84,7 @@ public class GraphManager : MonoBehaviour
 
         (yMin, yMax, yStep, startIndex) = GetAxisValues(yValues, visibleAmount);
         (xMin, xMax, xStep, _) = GetAxisValues(xValues);
+        Debug.Log(xMax);
 
         SetTitles(xVariable, yVariable);
         CreateLabelsAndDashes(getAxisLabelX, getAxisLabelY);
@@ -121,20 +125,28 @@ public class GraphManager : MonoBehaviour
     
     private void CreateLabelsAndDashes(Func<float, float, string> getAxisLabelX, Func<float, float, string> getAxisLabelY)
     {
-        for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
+        for (float xSeparatorPos = xMin; xSeparatorPos < xMax + xStep; xSeparatorPos += xStep)
         {
             float diff = xMax - xMin;
             float graphPosX = GetGraphPosX(xSeparatorPos);
-            CreateLabel(labelTemplateX, new Vector2(graphPosX, -8f), getAxisLabelX(xSeparatorPos, diff));
-            CreateDash(dashTemplateX, new Vector2(graphPosX, -5f));
+            float yLabelPos = (graphBackground.sizeDelta.y - graphHeight) / 2f;
+            CreateLabel(labelTemplateX, new Vector2(graphPosX, -yLabelPos), getAxisLabelX(xSeparatorPos, diff));
+            
+            bool isLastOrFistDash = xSeparatorPos < xMin + xStep / 2f || xSeparatorPos > xMax - xStep / 2f;
+            if (!isLastOrFistDash) 
+                CreateDash(dashTemplateX, new Vector2(graphPosX, 0));
         }
         
-        for (float ySeparatorPos = yMin; ySeparatorPos <= yMax; ySeparatorPos += yStep)
+        for (float ySeparatorPos = yMin; ySeparatorPos < yMax + yStep; ySeparatorPos += yStep)
         {
             float diff = yMax - yMin;
             float graphPosY = GetGraphPosY(ySeparatorPos);
-            CreateLabel(labelTemplateY, new Vector2(-14f, graphPosY), getAxisLabelY(ySeparatorPos, diff));
-            CreateDash(dashTemplateY,new Vector2(-4, graphPosY));
+            float xLabelPos = (graphBackground.sizeDelta.x - graphWidth) / 2f;
+            CreateLabel(labelTemplateY, new Vector2(-xLabelPos, graphPosY), getAxisLabelY(ySeparatorPos, diff));
+            
+            bool isLastOrFistDash = ySeparatorPos < yMin + yStep / 2f || ySeparatorPos > yMax - yStep / 2f;
+            if (!isLastOrFistDash)
+                CreateDash(dashTemplateY,new Vector2(0, graphPosY));
         }
     }
     
@@ -208,8 +220,8 @@ public class GraphManager : MonoBehaviour
 
         float step = Mathf.Pow(10, significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
         
-        max += step;
-        min -= step;
+        //max += step;
+        //min -= step;
         
         if (startAtZero)
             min = 0;
