@@ -48,13 +48,19 @@ public class NumberUtils : MonoBehaviour
 
         if (absNumber < 1)
         {
-            while ((absNumber *= 10f) < 1)
+            while (absNumber < 1)
+            {
+                absNumber *= 10f;
                 decimalPlaces--;
+            }
         }
         else
         {
-            while ((absNumber /= 10f) > 1)
+            while (absNumber > 10)
+            {
+                absNumber /= 10f;
                 decimalPlaces++;
+            }
         }
 
         return decimalPlaces;

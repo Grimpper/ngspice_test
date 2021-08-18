@@ -11,8 +11,6 @@ public class GraphManager : MonoBehaviour
 
     [SerializeField] private float minDistanceBetweenPoints = 0;
     [SerializeField] private int maxVisibleAmount = -1;
-    
-    private const float MinYDiff = 5f;
 
     #region GraphObjects
     private RectTransform graphContainer;
@@ -64,12 +62,12 @@ public class GraphManager : MonoBehaviour
     }
 
     private void ShowGraph(int variableIndex, in Dictionary<int, SpiceVariable> variables,  int visibleAmount = -1, 
-        Func<float, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
+        Func<float, float, string> getAxisLabelX = null, Func<float, float,  string> getAxisLabelY = null)
     {
-        getAxisLabelX ??= f => 
-            Math.Round(f, NumberUtils.GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
-        getAxisLabelY ??= f => 
-            Math.Round(f, NumberUtils.GetSignificantFigurePos(f) + 2).ToString(CultureInfo.InvariantCulture);
+        getAxisLabelX ??= (number, diff) => 
+            Math.Round(number, Mathf.Abs(NumberUtils.GetSignificantFigurePos(diff)) + 2).ToString(CultureInfo.InvariantCulture);
+        getAxisLabelY ??= (number, diff) => 
+            Math.Round(number, Mathf.Abs(NumberUtils.GetSignificantFigurePos(diff)) + 2).ToString(CultureInfo.InvariantCulture);
 
         EmptyGameObjectList(gameObjectsList);
 
@@ -121,19 +119,21 @@ public class GraphManager : MonoBehaviour
         yAxisTitle.gameObject.SetActive(true);
     }
     
-    private void CreateLabelsAndDashes(Func<float, string> getAxisLabelX, Func<float, string> getAxisLabelY)
+    private void CreateLabelsAndDashes(Func<float, float, string> getAxisLabelX, Func<float, float, string> getAxisLabelY)
     {
         for (float xSeparatorPos = xMin; xSeparatorPos <= xMax; xSeparatorPos += xStep)
         {
+            float diff = xMax - xMin;
             float graphPosX = GetGraphPosX(xSeparatorPos);
-            CreateLabel(labelTemplateX, new Vector2(graphPosX, -8f), getAxisLabelX(xSeparatorPos));
+            CreateLabel(labelTemplateX, new Vector2(graphPosX, -8f), getAxisLabelX(xSeparatorPos, diff));
             CreateDash(dashTemplateX, new Vector2(graphPosX, -5f));
         }
         
         for (float ySeparatorPos = yMin; ySeparatorPos <= yMax; ySeparatorPos += yStep)
         {
+            float diff = yMax - yMin;
             float graphPosY = GetGraphPosY(ySeparatorPos);
-            CreateLabel(labelTemplateY, new Vector2(-14f, graphPosY), getAxisLabelY(ySeparatorPos));
+            CreateLabel(labelTemplateY, new Vector2(-14f, graphPosY), getAxisLabelY(ySeparatorPos, diff));
             CreateDash(dashTemplateY,new Vector2(-4, graphPosY));
         }
     }
@@ -201,7 +201,7 @@ public class GraphManager : MonoBehaviour
                 min = value;
         }
 
-        float diff = max - min <= 0 ? MinYDiff : max - min;
+        float diff = max - min;
         
         int significantFigurePos = NumberUtils.GetSignificantFigurePos(diff);
         float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
