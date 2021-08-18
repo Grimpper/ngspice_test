@@ -112,9 +112,9 @@ public class GraphManager : MonoBehaviour
         xAxisTitle.GetComponent<Text>().text = xVariable.DisplayName + unit;
         xAxisTitle.gameObject.SetActive(true);
         
-        if (yVariable.DisplayName.StartsWith("v"))
+        if (yVariable.Name.StartsWith("v"))
             unit = " (" + NumberUtils.Voltage + ")";
-        else if (yVariable.DisplayName.StartsWith("i"))
+        else if (yVariable.Name.StartsWith("i"))
             unit = " (" + NumberUtils.Intensity + ")";
         
         yAxisTitle.GetComponent<Text>().text = yVariable.DisplayName + unit;
