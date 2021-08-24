@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +15,8 @@ public class GraphManager : MonoBehaviour
 
     #region GraphObjects
     private RectTransform graphContainer;
-    private RectTransform graphBackground;
+    private RectTransform labelsBackground;
+    private RectTransform titlesBackground;
     private RectTransform title;
     private RectTransform xAxisTitle;
     private RectTransform yAxisTitle;
@@ -42,20 +44,31 @@ public class GraphManager : MonoBehaviour
     
     private void Awake()
     {
-        graphBackground = transform.Find("Background").GetComponent<RectTransform>();
+        labelsBackground = transform.Find("Labels background").GetComponent<RectTransform>();
+        titlesBackground = transform.Find("Titles background").GetComponent<RectTransform>();
         
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
         graphWidth = graphContainer.sizeDelta.x;
         graphHeight = graphContainer.sizeDelta.y;
         
-        title = graphContainer.Find("Title").GetComponent<RectTransform>();
-        xAxisTitle = graphContainer.Find("X axis title").GetComponent<RectTransform>();
-        yAxisTitle = graphContainer.Find("Y axis title").GetComponent<RectTransform>();
+        title = transform.Find("Title").GetComponent<RectTransform>();
+        xAxisTitle = transform.Find("X axis title").GetComponent<RectTransform>();
+        yAxisTitle = transform.Find("Y axis title").GetComponent<RectTransform>();
+        
         labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
         labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
+        
         dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
         dashTemplateY = graphContainer.Find("Dash template Y").GetComponent<RectTransform>();
+        SetTemplateSizes();
+        
         gameObjectsList = new List<GameObject>();
+    }
+
+    private void SetTemplateSizes()
+    {
+        dashTemplateX.sizeDelta = new Vector2(graphWidth / dashTemplateX.transform.localScale.x, dashTemplateX.sizeDelta.y);
+        dashTemplateY.sizeDelta = new Vector2(graphHeight / dashTemplateY.transform.localScale.x, dashTemplateY.sizeDelta.y);
     }
     
     private void OnGUI()
@@ -103,7 +116,8 @@ public class GraphManager : MonoBehaviour
 
     private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
     {
-        title.GetComponent<Text>().text = SpiceParser.Title;
+        title.GetComponent<TextMeshProUGUI>().text = SpiceParser.Title;
+        title.anchoredPosition = new Vector2(0, (titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         title.gameObject.SetActive(true);
 
         string unit = String.Empty;
@@ -111,7 +125,8 @@ public class GraphManager : MonoBehaviour
         if (xVariable.DisplayName.Equals("time"))
             unit = " (" + NumberUtils.Time + ")";
 
-        xAxisTitle.GetComponent<Text>().text = xVariable.DisplayName + unit;
+        xAxisTitle.GetComponent<TextMeshProUGUI>().text = xVariable.DisplayName + unit;
+        xAxisTitle.anchoredPosition = new Vector2(0, -(titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         xAxisTitle.gameObject.SetActive(true);
         
         if (yVariable.Name.StartsWith("v"))
@@ -119,7 +134,8 @@ public class GraphManager : MonoBehaviour
         else if (yVariable.Name.StartsWith("i"))
             unit = " (" + NumberUtils.Intensity + ")";
         
-        yAxisTitle.GetComponent<Text>().text = yVariable.DisplayName + unit;
+        yAxisTitle.GetComponent<TextMeshProUGUI>().text = yVariable.DisplayName + unit;
+        yAxisTitle.anchoredPosition = new Vector2(-(titlesBackground.sizeDelta.x - labelsBackground.sizeDelta.x) / 4f, 0);
         yAxisTitle.gameObject.SetActive(true);
     }
     
@@ -129,7 +145,7 @@ public class GraphManager : MonoBehaviour
         {
             float diff = xMax - xMin;
             float graphPosX = GetGraphPosX(xSeparatorPos);
-            float yLabelPos = (graphBackground.sizeDelta.y - graphHeight) / 2f;
+            float yLabelPos = (labelsBackground.sizeDelta.y - graphHeight) / 4f;
             CreateLabel(labelTemplateX, new Vector2(graphPosX, -yLabelPos), getAxisLabelX(xSeparatorPos, diff));
             
             bool isLastOrFistDash = xSeparatorPos < xMin + xStep / 2f || xSeparatorPos > xMax - xStep / 2f;
@@ -141,7 +157,7 @@ public class GraphManager : MonoBehaviour
         {
             float diff = yMax - yMin;
             float graphPosY = GetGraphPosY(ySeparatorPos);
-            float xLabelPos = (graphBackground.sizeDelta.x - graphWidth) / 2f;
+            float xLabelPos = (labelsBackground.sizeDelta.x - graphWidth) / 4f;
             CreateLabel(labelTemplateY, new Vector2(-xLabelPos, graphPosY), getAxisLabelY(ySeparatorPos, diff));
             
             bool isLastOrFistDash = ySeparatorPos < yMin + yStep / 2f || ySeparatorPos > yMax - yStep / 2f;
@@ -234,7 +250,7 @@ public class GraphManager : MonoBehaviour
         RectTransform label = Instantiate(labelTemplate, graphContainer, false);
         label.gameObject.SetActive(true);
         label.anchoredPosition = position;
-        label.GetComponent<Text>().text = labelText;
+        label.GetComponent<TextMeshProUGUI>().text = labelText;
         
         gameObjectsList.Add(label.gameObject);
     }
