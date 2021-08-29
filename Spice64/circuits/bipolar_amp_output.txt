@@ -1,5 +1,5 @@
 Title: bipolar amplifier
-Date: Tue Aug 24 14:16:40  2021
+Date: Sun Aug 29 13:43:35  2021
 Plotname: Transient Analysis
 Flags: real
 No. Variables: 9

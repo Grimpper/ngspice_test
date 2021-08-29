@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 public class GraphManager : MonoBehaviour
 {
-    [SerializeField] private Sprite circleSprite;
+    [SerializeField] private Material circleMaterial;
+    [SerializeField] private float circleDiameter = 11;
     [SerializeField] private bool startAtZero = false;
 
     [SerializeField] private float minDistanceBetweenPoints = 0;
@@ -198,11 +199,11 @@ public class GraphManager : MonoBehaviour
     {
         GameObject dot = new GameObject("circle", typeof(Image));
         dot.transform.SetParent(graphContainer, false);
-        dot.GetComponent<Image>().sprite = circleSprite;
+        dot.GetComponent<Image>().material = circleMaterial;
 
         RectTransform rectTransform = dot.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = anchoredPos;
-        rectTransform.sizeDelta = new Vector2(11, 11);
+        rectTransform.sizeDelta = new Vector2(circleDiameter, circleDiameter);
         rectTransform.anchorMin = new Vector2(0, 0);
         rectTransform.anchorMax = new Vector2(0, 0);
 
