@@ -52,12 +52,12 @@ public class GraphManager : MonoBehaviour
         graphWidth = graphContainer.sizeDelta.x;
         graphHeight = graphContainer.sizeDelta.y;
         
-        title = transform.Find("Title").GetComponent<RectTransform>();
-        xAxisTitle = transform.Find("X axis title").GetComponent<RectTransform>();
-        yAxisTitle = transform.Find("Y axis title").GetComponent<RectTransform>();
+        title = titlesBackground.Find("Title").GetComponent<RectTransform>();
+        xAxisTitle = titlesBackground.Find("X axis title").GetComponent<RectTransform>();
+        yAxisTitle = titlesBackground.Find("Y axis title").GetComponent<RectTransform>();
         
-        labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
-        labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
+        labelTemplateX = labelsBackground.Find("Label template X").GetComponent<RectTransform>();
+        labelTemplateY = labelsBackground.Find("Label template Y").GetComponent<RectTransform>();
         
         dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
         dashTemplateY = graphContainer.Find("Dash template Y").GetComponent<RectTransform>();
@@ -118,7 +118,7 @@ public class GraphManager : MonoBehaviour
     private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
     {
         title.GetComponent<TextMeshProUGUI>().text = SpiceParser.Title;
-        title.anchoredPosition = new Vector2(0, (titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
+        title.anchoredPosition = new Vector2(0, -(titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         title.gameObject.SetActive(true);
 
         string unit = String.Empty;
@@ -127,7 +127,7 @@ public class GraphManager : MonoBehaviour
             unit = " (" + NumberUtils.Time + ")";
 
         xAxisTitle.GetComponent<TextMeshProUGUI>().text = xVariable.DisplayName + unit;
-        xAxisTitle.anchoredPosition = new Vector2(0, -(titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
+        xAxisTitle.anchoredPosition = new Vector2(0, (titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         xAxisTitle.gameObject.SetActive(true);
         
         if (yVariable.Name.StartsWith("v"))
@@ -136,7 +136,7 @@ public class GraphManager : MonoBehaviour
             unit = " (" + NumberUtils.Intensity + ")";
         
         yAxisTitle.GetComponent<TextMeshProUGUI>().text = yVariable.DisplayName + unit;
-        yAxisTitle.anchoredPosition = new Vector2(-(titlesBackground.sizeDelta.x - labelsBackground.sizeDelta.x) / 4f, 0);
+        yAxisTitle.anchoredPosition = new Vector2((titlesBackground.sizeDelta.x - labelsBackground.sizeDelta.x) / 4f, 0);
         yAxisTitle.gameObject.SetActive(true);
     }
     
@@ -171,27 +171,29 @@ public class GraphManager : MonoBehaviour
     {
         
         GameObject lastCircle = null;
+        Vector2? lastDataPoint = null;
         
         for (int i = startIndex; i < yValues.Count; i++)
         {
             Vector2 dataPoint = new Vector2(GetGraphPosX(xValues[i]), GetGraphPosY(yValues[i]));
 
-            if (lastCircle &&
-                (dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude < minDistanceBetweenPoints) 
-                continue;
-            
-            GameObject circle = CreateCircle(dataPoint);
-            gameObjectsList.Add(circle);
-
-
-            if (lastCircle && circle)
+            if (!lastCircle || !((dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude <
+                                 minDistanceBetweenPoints))
             {
-                GameObject connection = CreateConnection(lastCircle.GetComponent<RectTransform>().anchoredPosition,
-                    circle.GetComponent<RectTransform>().anchoredPosition);
+                GameObject circle = CreateCircle(dataPoint);
+                gameObjectsList.Add(circle);
+
+                lastCircle = circle;
+            }
+
+            if (lastDataPoint != null)
+            {
+                GameObject connection = CreateConnection((Vector2) lastDataPoint,
+                    dataPoint);
                 gameObjectsList.Add(connection);
             }
 
-            lastCircle = circle;
+            lastDataPoint = dataPoint;
         }
     }
     
@@ -273,12 +275,13 @@ public class GraphManager : MonoBehaviour
 
         RectTransform rectTransform = connection.GetComponent<RectTransform>();
         Vector2 dir = (dotPositionB - dotPositionA).normalized;
+        Debug.Log(dir);
         float distance = Vector2.Distance(dotPositionA, dotPositionB);
         
         rectTransform.anchorMin = new Vector2(0, 0);
         rectTransform.anchorMax = new Vector2(0, 0);
         rectTransform.sizeDelta = new Vector2(distance, 3f);
-        rectTransform.anchoredPosition = dotPositionA +  0.5f * distance * dir;
+        rectTransform.anchoredPosition = dotPositionA + 0.5f * distance * dir;
         rectTransform.localEulerAngles = 
             new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Degrees) ?? 0f);
 
