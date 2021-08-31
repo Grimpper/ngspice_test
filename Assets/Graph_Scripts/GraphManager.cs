@@ -26,6 +26,8 @@ public class GraphManager : MonoBehaviour
     private RectTransform dashTemplateX;
     private RectTransform dashTemplateY;
     private List<GameObject> gameObjectsList;
+
+    private UIGridRenderer uiGridRenderer;
     #endregion
 
     #region GraphData
@@ -64,6 +66,8 @@ public class GraphManager : MonoBehaviour
         SetTemplateSizes();
         
         gameObjectsList = new List<GameObject>();
+
+        uiGridRenderer = transform.Find("UIGridRenderer").GetComponent<UIGridRenderer>();
     }
 
     private void SetTemplateSizes()
@@ -142,29 +146,38 @@ public class GraphManager : MonoBehaviour
     
     private void CreateLabelsAndDashes(Func<float, float, string> getAxisLabelX, Func<float, float, string> getAxisLabelY)
     {
-        for (float xSeparatorPos = xMin; xSeparatorPos < xMax + xStep; xSeparatorPos += xStep)
+        int xLabelCount = 0;
+        for (float xSeparatorPos = xMin; xSeparatorPos < xMax + xStep; xSeparatorPos += xStep, xLabelCount++)
         {
             float diff = xMax - xMin;
             float graphPosX = GetGraphPosX(xSeparatorPos);
             float yLabelPos = (labelsBackground.sizeDelta.y - graphHeight) / 4f;
             CreateLabel(labelTemplateX, new Vector2(graphPosX, -yLabelPos), getAxisLabelX(xSeparatorPos, diff));
             
-            bool isLastOrFistDash = xSeparatorPos < xMin + xStep / 2f || xSeparatorPos > xMax - xStep / 2f;
-            if (!isLastOrFistDash) 
-                CreateDash(dashTemplateX, new Vector2(graphPosX, 0));
+            //if (!IsLastOrFistDash(xSeparatorPos, xMin, xMax, xStep)) 
+            //    CreateDash(dashTemplateX, new Vector2(graphPosX, 0));
         }
-        
-        for (float ySeparatorPos = yMin; ySeparatorPos < yMax + yStep; ySeparatorPos += yStep)
+
+        int yLabelCount = 0;
+        for (float ySeparatorPos = yMin; ySeparatorPos < yMax + yStep; ySeparatorPos += yStep, yLabelCount++)
         {
             float diff = yMax - yMin;
             float graphPosY = GetGraphPosY(ySeparatorPos);
             float xLabelPos = (labelsBackground.sizeDelta.x - graphWidth) / 4f;
             CreateLabel(labelTemplateY, new Vector2(-xLabelPos, graphPosY), getAxisLabelY(ySeparatorPos, diff));
             
-            bool isLastOrFistDash = ySeparatorPos < yMin + yStep / 2f || ySeparatorPos > yMax - yStep / 2f;
-            if (!isLastOrFistDash)
-                CreateDash(dashTemplateY,new Vector2(0, graphPosY));
+            //if (!IsLastOrFistDash(ySeparatorPos, yMin, yMax, yStep))
+            //    CreateDash(dashTemplateY,new Vector2(0, graphPosY));
         }
+        
+        int xDivisions = --xLabelCount;
+        int yDivisions = --yLabelCount;
+        uiGridRenderer.GridSize = new Vector2Int(xDivisions, yDivisions);
+    }
+
+    private bool IsLastOrFistDash(float pos, float min, float max, float step)
+    {
+        return pos < min + step / 2f || pos > max - step / 2f;
     }
     
     private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
