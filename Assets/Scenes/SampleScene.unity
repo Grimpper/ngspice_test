@@ -1818,6 +1818,8 @@ MonoBehaviour:
   startAtZero: 0
   minDistanceBetweenPoints: 20
   maxVisibleAmount: -1
+  xMagnitude: -3
+  yMagnitude: 0
 --- !u!1 &2076813353
 GameObject:
   m_ObjectHideFlags: 0

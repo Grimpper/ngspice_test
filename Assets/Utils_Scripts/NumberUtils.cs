@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NumberUtils : MonoBehaviour
+public static class NumberUtils
 {
     public enum Unit
     {
@@ -29,7 +29,10 @@ public class NumberUtils : MonoBehaviour
         z = -21,
         y = -24,
     }
-    
+
+    private static string MagnitudeToString(this Unit magnitude) 
+        => magnitude == Unit.Unitary ? "" : magnitude.ToString();
+
     public const string
         Radians = "rad",
         Degrees = "°",
@@ -75,4 +78,24 @@ public class NumberUtils : MonoBehaviour
         };
 
     public static float GetMagnitude(Unit unit) => Mathf.Pow(10, (int) unit);
+    
+    public static string GetUnit(string variableName, Unit magnitude)
+    {
+        if (variableName.Equals("time"))
+        {
+            return " (" + magnitude.MagnitudeToString() + Time + ")";
+        }
+
+        if (variableName.StartsWith("v"))
+        {
+            return " (" + magnitude.MagnitudeToString() + Voltage + ")";
+        }
+
+        if (variableName.StartsWith("i"))
+        {
+            return " (" + magnitude.MagnitudeToString() + Intensity + ")";
+        }
+
+        return "";
+    }
 }

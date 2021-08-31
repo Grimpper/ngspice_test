@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,8 @@ public class GraphManager : MonoBehaviour
 
     [SerializeField] private float minDistanceBetweenPoints = 0;
     [SerializeField] private int maxVisibleAmount = -1;
+    [SerializeField] [FixEnumNames] private NumberUtils.Unit xMagnitude = NumberUtils.Unit.Unitary;
+    [SerializeField] [FixEnumNames] private NumberUtils.Unit yMagnitude = NumberUtils.Unit.Unitary;
 
     #region GraphObjects
     private RectTransform graphContainer;
@@ -94,8 +97,8 @@ public class GraphManager : MonoBehaviour
 
         if (!variables.TryGetValue(0, out var xVariable) || !variables.TryGetValue(variableIndex, out var yVariable))
             return;
-        List<float> xValues = xVariable.GetValues(NumberUtils.Unit.m);
-        List<float> yValues = yVariable.GetValues();
+        List<float> xValues = xVariable.GetValues(xMagnitude);
+        List<float> yValues = yVariable.GetValues(yMagnitude);
         
         if (visibleAmount < 0) 
             visibleAmount = yVariable.GetValues().Count;
@@ -125,25 +128,17 @@ public class GraphManager : MonoBehaviour
         title.anchoredPosition = new Vector2(0, -(titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         title.gameObject.SetActive(true);
 
-        string unit = String.Empty;
-
-        if (xVariable.DisplayName.Equals("time"))
-            unit = " (" + NumberUtils.Time + ")";
-
-        xAxisTitle.GetComponent<TextMeshProUGUI>().text = xVariable.DisplayName + unit;
+        string xUnit = NumberUtils.GetUnit(xVariable.Name, xMagnitude);
+        xAxisTitle.GetComponent<TextMeshProUGUI>().text = xVariable.DisplayName + xUnit;
         xAxisTitle.anchoredPosition = new Vector2(0, (titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
         xAxisTitle.gameObject.SetActive(true);
         
-        if (yVariable.Name.StartsWith("v"))
-            unit = " (" + NumberUtils.Voltage + ")";
-        else if (yVariable.Name.StartsWith("i"))
-            unit = " (" + NumberUtils.Intensity + ")";
-        
-        yAxisTitle.GetComponent<TextMeshProUGUI>().text = yVariable.DisplayName + unit;
+        string yUnit = NumberUtils.GetUnit(yVariable.Name, yMagnitude);
+        yAxisTitle.GetComponent<TextMeshProUGUI>().text = yVariable.DisplayName + yUnit;
         yAxisTitle.anchoredPosition = new Vector2((titlesBackground.sizeDelta.x - labelsBackground.sizeDelta.x) / 4f, 0);
         yAxisTitle.gameObject.SetActive(true);
     }
-    
+
     private void CreateLabelsAndDashes(Func<float, float, string> getAxisLabelX, Func<float, float, string> getAxisLabelY)
     {
         int xLabelCount = 0;
