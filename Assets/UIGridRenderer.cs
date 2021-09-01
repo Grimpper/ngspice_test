@@ -52,52 +52,12 @@ public class UIGridRenderer : Graphic
         
         UIVertex vertex = UIVertex.simpleVert;
         vertex.color = color;
-
-        vertex.position = new Vector3(xPos, yPos);
-        vh.AddVert(vertex);
-
-        vertex.position = new Vector3(xPos, yPos + cellHeight);
-        vh.AddVert(vertex);
-
-        vertex.position = new Vector3(xPos + cellWidth, yPos + cellHeight);
-        vh.AddVert(vertex);
-
-        vertex.position = new Vector3(xPos + cellWidth, yPos);
-        vh.AddVert(vertex);
         
-        float widthSqr = thickness * thickness;
-        float distanceSqr = widthSqr / 2f;
-        float distance = Mathf.Sqrt(distanceSqr);
-        
-        vertex.position = new Vector3(xPos + distance, yPos + distance);
-        vh.AddVert(vertex);
+        float distance = thickness / Mathf.Sqrt(2f);
 
-        vertex.position = new Vector3(xPos + distance, yPos + cellHeight - distance);
-        vh.AddVert(vertex);
-
-        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + cellHeight - distance);
-        vh.AddVert(vertex);
-
-        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + distance);
-        vh.AddVert(vertex);
-
-        int offset = index * 8;
-        
-        // Left Edge
-        vh.AddTriangle(offset + 0, offset + 1, offset + 5);
-        vh.AddTriangle(offset + 5, offset + 4, offset + 0);
-        
-        // Top Edge
-        vh.AddTriangle(offset + 1, offset + 2, offset + 6);
-        vh.AddTriangle(offset + 6, offset + 5, offset + 1);
-        
-        // Right Edge
-        vh.AddTriangle(offset + 2, offset + 3, offset + 7);
-        vh.AddTriangle(offset + 7, offset + 6, offset + 2);
-        
-        // Bottom Edge
-        vh.AddTriangle(offset + 3, offset + 0, offset + 4);
-        vh.AddTriangle(offset + 4, offset + 7, offset + 3);
+        AddCornerVertices(ref vertex, ref vh, xPos, yPos);
+        AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos, distance);
+        AddCellTriangles(ref vh, index);
     }
     
     private void DrawDashedCell(int x, int y, int index, VertexHelper vh)
@@ -114,7 +74,7 @@ public class UIGridRenderer : Graphic
         AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos, distance);
         AddMiddleVertices(ref vertex, ref vh, xPos, yPos);
         AddInternalMiddleVertices(ref vertex, ref vh, xPos, yPos, distance);
-        AddTriangles(ref vh, index);
+        AddDashedCellTriangles(ref vh, index);
     }
 
     private void AddCornerVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
@@ -202,7 +162,7 @@ public class UIGridRenderer : Graphic
         vh.AddVert(vertex);
     }
 
-    private void AddTriangles(ref VertexHelper vh, int index)
+    private void AddDashedCellTriangles(ref VertexHelper vh, int index)
     {
         int offset = index * 24;
         
@@ -229,5 +189,26 @@ public class UIGridRenderer : Graphic
         vh.AddTriangle(offset + 13, offset + 3, offset + 7);
         vh.AddTriangle(offset + 7, offset + 3, offset + 16);
         vh.AddTriangle(offset + 14, offset + 22, offset + 7);
+    }
+    
+    private void AddCellTriangles(ref VertexHelper vh, int index)
+    {
+        int offset = index * 8;
+        
+        // Left Edge
+        vh.AddTriangle(offset + 0, offset + 1, offset + 5);
+        vh.AddTriangle(offset + 5, offset + 4, offset + 0);
+        
+        // Top Edge
+        vh.AddTriangle(offset + 1, offset + 2, offset + 6);
+        vh.AddTriangle(offset + 6, offset + 5, offset + 1);
+        
+        // Right Edge
+        vh.AddTriangle(offset + 2, offset + 3, offset + 7);
+        vh.AddTriangle(offset + 7, offset + 6, offset + 2);
+        
+        // Bottom Edge
+        vh.AddTriangle(offset + 3, offset + 0, offset + 4);
+        vh.AddTriangle(offset + 4, offset + 7, offset + 3);
     }
 }
