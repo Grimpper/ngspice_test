@@ -283,7 +283,6 @@ public class GraphManager : MonoBehaviour
 
         RectTransform rectTransform = connection.GetComponent<RectTransform>();
         Vector2 dir = (dotPositionB - dotPositionA).normalized;
-        Debug.Log(dir);
         float distance = Vector2.Distance(dotPositionA, dotPositionB);
         
         rectTransform.anchorMin = new Vector2(0, 0);

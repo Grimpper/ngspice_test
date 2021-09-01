@@ -9,6 +9,7 @@ public class UIGridRenderer : Graphic
     [Header("Grid properties")]
     [SerializeField] private Vector2Int gridSize = new Vector2Int(1, 1);
     public float thickness = 1.5f;
+    [Range(0, 10)] public int dashes = 2;
     
 
     enum CellType { Solid, Dashed }
@@ -33,6 +34,10 @@ public class UIGridRenderer : Graphic
     private float height;
     private float cellWidth;
     private float cellHeight;
+
+    private float distance;
+    private float horizontalDashWidth;
+    private float verticalDashWidth;
 
     private Function GetFunction() => functions[(int) cellType];
     
@@ -69,10 +74,10 @@ public class UIGridRenderer : Graphic
         UIVertex vertex = UIVertex.simpleVert;
         vertex.color = color;
         
-        float distance = thickness / Mathf.Sqrt(2f);
+        distance = thickness / Mathf.Sqrt(2f);
 
         AddCornerVertices(ref vertex, ref vh, xPos, yPos);
-        AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos, distance);
+        AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos);
         AddCellTriangles(ref vh, index);
     }
     
@@ -84,13 +89,17 @@ public class UIGridRenderer : Graphic
         UIVertex vertex = UIVertex.simpleVert;
         vertex.color = color;
         
-        float distance = thickness / Mathf.Sqrt(2f);
+        distance = thickness / Mathf.Sqrt(2f);
+        horizontalDashWidth = cellWidth / (dashes * 2 + 2);
+        verticalDashWidth = cellHeight / (dashes * 2 + 2);
 
         AddCornerVertices(ref vertex, ref vh, xPos, yPos);
-        AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos, distance);
+        AddInternalCornerVertices(ref vertex, ref vh, xPos, yPos);
         AddMiddleVertices(ref vertex, ref vh, xPos, yPos);
-        AddInternalMiddleVertices(ref vertex, ref vh, xPos, yPos, distance);
-        AddDashedCellTriangles(ref vh, index);
+        AddInternalMiddleVertices(ref vertex, ref vh, xPos, yPos);
+        AddDashesVertices(ref vertex, ref vh, xPos, yPos);
+
+        AddCornerCellTriangles(ref vh, index);
     }
 
     private void AddCornerVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
@@ -108,7 +117,7 @@ public class UIGridRenderer : Graphic
         vh.AddVert(vertex);
     }
 
-    private void AddInternalCornerVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, float distance)
+    private void AddInternalCornerVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
     {
         
         vertex.position = new Vector3(xPos + distance, yPos + distance);
@@ -126,61 +135,143 @@ public class UIGridRenderer : Graphic
     
     private void AddMiddleVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
     {
-        vertex.position = new Vector3(xPos, yPos + cellHeight / 3f);
+        vertex.position = new Vector3(xPos, yPos + verticalDashWidth / 2);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos, yPos + cellHeight - cellHeight / 3f);
+        vertex.position = new Vector3(xPos, yPos + cellHeight - verticalDashWidth / 2);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos + cellWidth / 3f, yPos + cellHeight);
+        vertex.position = new Vector3(xPos + horizontalDashWidth / 2, yPos + cellHeight);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos + cellWidth - cellWidth / 3f, yPos + cellHeight);
+        vertex.position = new Vector3(xPos + cellWidth - horizontalDashWidth / 2, yPos + cellHeight);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth, yPos + cellHeight - cellHeight / 3f);
+        vertex.position = new Vector3(xPos + cellWidth, yPos + cellHeight - verticalDashWidth / 2);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth, yPos + cellHeight / 3f);
+        vertex.position = new Vector3(xPos + cellWidth, yPos + verticalDashWidth / 2);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth - cellWidth / 3f, yPos);
+        vertex.position = new Vector3(xPos + cellWidth - horizontalDashWidth / 2, yPos);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth / 3f, yPos);
+        vertex.position = new Vector3(xPos + horizontalDashWidth / 2, yPos);
         vh.AddVert(vertex);
     }
     
-    private void AddInternalMiddleVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, float distance)
+    private void AddInternalMiddleVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
     {
-        vertex.position = new Vector3(xPos + distance, yPos + cellHeight / 3f);
+        vertex.position = new Vector3(xPos + distance, yPos + verticalDashWidth / 2);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos + distance, yPos + cellHeight - cellHeight / 3f);
+        vertex.position = new Vector3(xPos + distance, yPos + cellHeight - verticalDashWidth / 2);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos + cellWidth / 3f, yPos + cellHeight - distance);
+        vertex.position = new Vector3(xPos + horizontalDashWidth / 2, yPos + cellHeight - distance);
         vh.AddVert(vertex);
 
-        vertex.position = new Vector3(xPos + cellWidth - cellWidth / 3f, yPos + cellHeight - distance);
+        vertex.position = new Vector3(xPos + cellWidth - horizontalDashWidth / 2, yPos + cellHeight - distance);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + cellHeight - cellHeight / 3f);
+        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + cellHeight - verticalDashWidth / 2);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + cellHeight / 3f);
+        vertex.position = new Vector3(xPos + cellWidth - distance, yPos + verticalDashWidth / 2);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth - cellWidth / 3f, yPos + distance);
+        vertex.position = new Vector3(xPos + cellWidth - horizontalDashWidth / 2, yPos + distance);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xPos + cellWidth / 3f, yPos + distance);
+        vertex.position = new Vector3(xPos + horizontalDashWidth / 2, yPos + distance);
+        vh.AddVert(vertex);
+    }
+    
+    private void AddDashesVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
+    {
+        for (int i = 0; i < dashes; i++)
+        {
+            AddHorizontalDashVertices(ref vertex, ref vh, xPos, yPos, horizontalDashWidth, i);
+            AddVerticalDashVertices(ref vertex, ref vh, xPos, yPos, verticalDashWidth, i);
+        }
+    }
+    
+    private void AddHorizontalDashVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
+        float dashWidth, float dashIndex)
+    {
+        // Bottom dashes vertices
+        float xDashPos = xPos + horizontalDashWidth / 2 + horizontalDashWidth + horizontalDashWidth * 2 * dashIndex;
+        float yDashPos = yPos;
+        
+        vertex.position = new Vector3(xDashPos, yDashPos);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos, yDashPos + distance);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + dashWidth, yDashPos + distance);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + dashWidth, yDashPos);
+        vh.AddVert(vertex);
+        
+        // Top dashes vertices
+        yDashPos = yPos + cellHeight - distance;
+        
+        vertex.position = new Vector3(xDashPos, yDashPos);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos);
         vh.AddVert(vertex);
     }
 
-    private void AddDashedCellTriangles(ref VertexHelper vh, int index)
+    private void AddVerticalDashVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
+        float dashWidth, float dashIndex)
     {
-        int offset = index * 24;
+        // Left dashes vertices
+        float xDashPos = xPos;
+        float yDashPos = yPos + verticalDashWidth / 2 + verticalDashWidth + verticalDashWidth * 2 * dashIndex;
+        
+        vertex.position = new Vector3(xDashPos, yDashPos);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos);
+        vh.AddVert(vertex);
+        
+        // Right dashes vertices
+        xDashPos = xPos + cellWidth - distance;
+        yDashPos = yPos + verticalDashWidth / 2 + verticalDashWidth;
+        
+        vertex.position = new Vector3(xDashPos, yDashPos);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos + dashWidth);
+        vh.AddVert(vertex);
+        
+        vertex.position = new Vector3(xDashPos + distance, yDashPos);
+        vh.AddVert(vertex);
+    }
+
+    private void AddCornerCellTriangles(ref VertexHelper vh, int index)
+    {
+        int offset = index * (24 + 4 * dashes * 4);
+        
+        Debug.Log("Vertex count: " + vh.currentVertCount);
         
         // Left bottom Corner
         vh.AddTriangle(offset + 15, offset + 4, offset + 23);
@@ -205,6 +296,13 @@ public class UIGridRenderer : Graphic
         vh.AddTriangle(offset + 13, offset + 3, offset + 7);
         vh.AddTriangle(offset + 7, offset + 3, offset + 14);
         vh.AddTriangle(offset + 14, offset + 22, offset + 7);
+    }
+    
+    private void AddDashesTriangles(ref VertexHelper vh, int index)
+    {
+        int offset = index * (24 + 4 * dashes * 4);
+        
+        // TODO: create dashes triangles
     }
     
     private void AddCellTriangles(ref VertexHelper vh, int index)
