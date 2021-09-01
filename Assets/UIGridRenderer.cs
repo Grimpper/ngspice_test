@@ -21,6 +21,9 @@ public class UIGridRenderer : Graphic
     private Function[] functions;
     private Function drawFunction;
 
+    [Space]
+    [SerializeField] private bool debug = false;
+
     public Vector2Int GridSize
     {
         set
@@ -72,7 +75,7 @@ public class UIGridRenderer : Graphic
         float yPos = cellHeight * y;
         
         UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = color;
+        vertex.color = debug ? new Color32(0, 255, 0, 255) : (Color32)color;
         
         distance = thickness / Mathf.Sqrt(2f);
 
@@ -87,7 +90,7 @@ public class UIGridRenderer : Graphic
         float yPos = cellHeight * y;
         
         UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = new Color32(0, 255, 0, 255);
+        vertex.color = debug ? new Color32(0, 255, 0, 255) : (Color32)color;
         
         distance = thickness / Mathf.Sqrt(2f);
         horizontalDashWidth = cellWidth / (dashes * 2 + 2);
@@ -192,10 +195,10 @@ public class UIGridRenderer : Graphic
     {
         for (int i = 0; i < dashes; i++)
         {
-            vertex.color = new Color32(0, 0, 255, 255);
+            if (debug) vertex.color = new Color32(0, 0, 255, 255);
             AddHorizontalDashesVertices(ref vertex, ref vh, xPos, yPos, horizontalDashWidth, i);
             
-            vertex.color = new Color32( 255, 0, 0, 255);
+            if (debug) vertex.color = new Color32( 255, 0, 0, 255);
             AddVerticalDashesVertices(ref vertex, ref vh, xPos, yPos, verticalDashWidth, i);
         }
     }
