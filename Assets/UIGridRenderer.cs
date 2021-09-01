@@ -87,7 +87,7 @@ public class UIGridRenderer : Graphic
         float yPos = cellHeight * y;
         
         UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = color;
+        vertex.color = new Color32(0, 255, 0, 255);
         
         distance = thickness / Mathf.Sqrt(2f);
         horizontalDashWidth = cellWidth / (dashes * 2 + 2);
@@ -100,6 +100,7 @@ public class UIGridRenderer : Graphic
         AddDashesVertices(ref vertex, ref vh, xPos, yPos);
 
         AddCornerCellTriangles(ref vh, index);
+        AddDashesTriangles(ref vh, index);
     }
 
     private void AddCornerVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos)
@@ -191,12 +192,15 @@ public class UIGridRenderer : Graphic
     {
         for (int i = 0; i < dashes; i++)
         {
-            AddHorizontalDashVertices(ref vertex, ref vh, xPos, yPos, horizontalDashWidth, i);
-            AddVerticalDashVertices(ref vertex, ref vh, xPos, yPos, verticalDashWidth, i);
+            vertex.color = new Color32(0, 0, 255, 255);
+            AddHorizontalDashesVertices(ref vertex, ref vh, xPos, yPos, horizontalDashWidth, i);
+            
+            vertex.color = new Color32( 255, 0, 0, 255);
+            AddVerticalDashesVertices(ref vertex, ref vh, xPos, yPos, verticalDashWidth, i);
         }
     }
     
-    private void AddHorizontalDashVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
+    private void AddHorizontalDashesVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
         float dashWidth, float dashIndex)
     {
         // Bottom dashes vertices
@@ -221,17 +225,17 @@ public class UIGridRenderer : Graphic
         vertex.position = new Vector3(xDashPos, yDashPos);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xDashPos, yDashPos + dashWidth);
+        vertex.position = new Vector3(xDashPos, yDashPos + distance);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xDashPos + distance, yDashPos + dashWidth);
+        vertex.position = new Vector3(xDashPos + dashWidth, yDashPos + distance);
         vh.AddVert(vertex);
         
-        vertex.position = new Vector3(xDashPos + distance, yDashPos);
+        vertex.position = new Vector3(xDashPos + dashWidth, yDashPos);
         vh.AddVert(vertex);
     }
 
-    private void AddVerticalDashVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
+    private void AddVerticalDashesVertices(ref UIVertex vertex, ref VertexHelper vh, float xPos, float yPos, 
         float dashWidth, float dashIndex)
     {
         // Left dashes vertices
@@ -252,7 +256,6 @@ public class UIGridRenderer : Graphic
         
         // Right dashes vertices
         xDashPos = xPos + cellWidth - distance;
-        yDashPos = yPos + verticalDashWidth / 2 + verticalDashWidth;
         
         vertex.position = new Vector3(xDashPos, yDashPos);
         vh.AddVert(vertex);
@@ -269,60 +272,83 @@ public class UIGridRenderer : Graphic
 
     private void AddCornerCellTriangles(ref VertexHelper vh, int index)
     {
-        int offset = index * (24 + 4 * dashes * 4);
+        int cellOffset = index * (24 + 4 * dashes * 4);
         
         Debug.Log("Vertex count: " + vh.currentVertCount);
         
         // Left bottom Corner
-        vh.AddTriangle(offset + 15, offset + 4, offset + 23);
-        vh.AddTriangle(offset + 0, offset + 4, offset + 15);
-        vh.AddTriangle(offset + 0, offset + 8, offset + 4);
-        vh.AddTriangle(offset + 8, offset + 16, offset + 4);
+        vh.AddTriangle(cellOffset + 15, cellOffset + 4, cellOffset + 23);
+        vh.AddTriangle(cellOffset + 0, cellOffset + 4, cellOffset + 15);
+        vh.AddTriangle(cellOffset + 0, cellOffset + 8, cellOffset + 4);
+        vh.AddTriangle(cellOffset + 8, cellOffset + 16, cellOffset + 4);
         
         // Left top Corner
-        vh.AddTriangle(offset + 9, offset + 5, offset + 17);
-        vh.AddTriangle(offset + 9, offset + 1, offset + 5);
-        vh.AddTriangle(offset + 1, offset + 10, offset + 5);
-        vh.AddTriangle(offset + 5, offset + 10, offset + 18);
+        vh.AddTriangle(cellOffset + 9, cellOffset + 5, cellOffset + 17);
+        vh.AddTriangle(cellOffset + 9, cellOffset + 1, cellOffset + 5);
+        vh.AddTriangle(cellOffset + 1, cellOffset + 10, cellOffset + 5);
+        vh.AddTriangle(cellOffset + 5, cellOffset + 10, cellOffset + 18);
         
         // Right top Corner
-        vh.AddTriangle(offset + 19, offset + 11, offset + 6);
-        vh.AddTriangle(offset + 11, offset + 2, offset + 6);
-        vh.AddTriangle(offset + 2, offset + 12, offset + 6);
-        vh.AddTriangle(offset + 20, offset + 6, offset + 12);
+        vh.AddTriangle(cellOffset + 19, cellOffset + 11, cellOffset + 6);
+        vh.AddTriangle(cellOffset + 11, cellOffset + 2, cellOffset + 6);
+        vh.AddTriangle(cellOffset + 2, cellOffset + 12, cellOffset + 6);
+        vh.AddTriangle(cellOffset + 20, cellOffset + 6, cellOffset + 12);
         
         // Right bottom Corner
-        vh.AddTriangle(offset + 21, offset + 13, offset + 7);
-        vh.AddTriangle(offset + 13, offset + 3, offset + 7);
-        vh.AddTriangle(offset + 7, offset + 3, offset + 14);
-        vh.AddTriangle(offset + 14, offset + 22, offset + 7);
+        vh.AddTriangle(cellOffset + 21, cellOffset + 13, cellOffset + 7);
+        vh.AddTriangle(cellOffset + 13, cellOffset + 3, cellOffset + 7);
+        vh.AddTriangle(cellOffset + 7, cellOffset + 3, cellOffset + 14);
+        vh.AddTriangle(cellOffset + 14, cellOffset + 22, cellOffset + 7);
     }
     
     private void AddDashesTriangles(ref VertexHelper vh, int index)
     {
-        int offset = index * (24 + 4 * dashes * 4);
+        int cellOffset = index * (24 + 4 * dashes * 4);
         
-        // TODO: create dashes triangles
+        for (int dashIndex = 0; dashIndex < dashes; dashIndex++)
+        {
+            int dashOffset = dashIndex * 4;
+            
+            // Bottom dashes
+            int bottomDashesStart = cellOffset + 24 + dashOffset;
+            vh.AddTriangle(bottomDashesStart + 0, bottomDashesStart + 1, bottomDashesStart + 3);
+            vh.AddTriangle(bottomDashesStart + 1, bottomDashesStart + 2, bottomDashesStart + 3);
+            
+            // Top dashes
+            int topDashesStart = bottomDashesStart + 4 * dashes;
+            vh.AddTriangle(topDashesStart + 0, topDashesStart + 1, topDashesStart + 3);
+            vh.AddTriangle(topDashesStart + 1, topDashesStart + 2, topDashesStart + 3);
+            
+            // Left dashes
+            int leftDashesStart = topDashesStart + 4 * dashes;
+            vh.AddTriangle(leftDashesStart + 0, leftDashesStart + 1, leftDashesStart + 3);
+            vh.AddTriangle(leftDashesStart + 1, leftDashesStart + 2, leftDashesStart + 3);
+            
+            // Right dashes
+            int rightDashesStart = leftDashesStart + 4 * dashes;
+            vh.AddTriangle(rightDashesStart + 0, rightDashesStart + 1, rightDashesStart + 3);
+            vh.AddTriangle(rightDashesStart + 1, rightDashesStart + 2, rightDashesStart + 3);
+        }
     }
-    
+
     private void AddCellTriangles(ref VertexHelper vh, int index)
     {
-        int offset = index * 8;
+        int cellOffset = index * 8;
         
         // Left Edge
-        vh.AddTriangle(offset + 0, offset + 1, offset + 5);
-        vh.AddTriangle(offset + 5, offset + 4, offset + 0);
+        vh.AddTriangle(cellOffset + 0, cellOffset + 1, cellOffset + 5);
+        vh.AddTriangle(cellOffset + 5, cellOffset + 4, cellOffset + 0);
         
         // Top Edge
-        vh.AddTriangle(offset + 1, offset + 2, offset + 6);
-        vh.AddTriangle(offset + 6, offset + 5, offset + 1);
+        vh.AddTriangle(cellOffset + 1, cellOffset + 2, cellOffset + 6);
+        vh.AddTriangle(cellOffset + 6, cellOffset + 5, cellOffset + 1);
         
         // Right Edge
-        vh.AddTriangle(offset + 2, offset + 3, offset + 7);
-        vh.AddTriangle(offset + 7, offset + 6, offset + 2);
+        vh.AddTriangle(cellOffset + 2, cellOffset + 3, cellOffset + 7);
+        vh.AddTriangle(cellOffset + 7, cellOffset + 6, cellOffset + 2);
         
         // Bottom Edge
-        vh.AddTriangle(offset + 3, offset + 0, offset + 4);
-        vh.AddTriangle(offset + 4, offset + 7, offset + 3);
+        vh.AddTriangle(cellOffset + 3, cellOffset + 0, cellOffset + 4);
+        vh.AddTriangle(cellOffset + 4, cellOffset + 7, cellOffset + 3);
     }
 }
