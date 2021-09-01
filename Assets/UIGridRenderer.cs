@@ -6,8 +6,20 @@ using UnityEngine.UIElements;
 
 public class UIGridRenderer : Graphic
 {
+    [Header("Grid properties")]
     [SerializeField] private Vector2Int gridSize = new Vector2Int(1, 1);
+    public float thickness = 1.5f;
     
+
+    enum CellType { Solid, Dashed }
+    [Header("Cell properties")]
+    [SerializeField] private CellType cellType = CellType.Solid;
+
+    private delegate void Function(int x, int y, int index, VertexHelper vh);
+
+    private Function[] functions;
+    private Function drawFunction;
+
     public Vector2Int GridSize
     {
         set
@@ -17,15 +29,19 @@ public class UIGridRenderer : Graphic
         }
     }
 
-    public float thickness = 10f;
-
     private float width;
     private float height;
     private float cellWidth;
     private float cellHeight;
+
+    private Function GetFunction() => functions[(int) cellType];
     
     protected override void OnPopulateMesh(VertexHelper vh)
     {
+        functions = new Function[] { DrawCell, DrawDashedCell };
+
+        drawFunction = GetFunction();
+        
         vh.Clear();
         
         width = rectTransform.rect.width;
@@ -39,7 +55,7 @@ public class UIGridRenderer : Graphic
         {
             for (int x = 0; x < gridSize.x; x++)
             {
-                DrawDashedCell(x, y, count, vh);
+                drawFunction(x, y, count, vh);
                 count++;
             }
         }
