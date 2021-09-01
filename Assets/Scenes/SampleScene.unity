@@ -347,7 +347,9 @@ MonoBehaviour:
   m_Color: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 0.23529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  gridSize: {x: 1, y: 1}
   thickness: 1.5
+  cellType: 0
 --- !u!222 &261053206
 CanvasRenderer:
   m_ObjectHideFlags: 0

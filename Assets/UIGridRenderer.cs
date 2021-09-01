@@ -203,7 +203,7 @@ public class UIGridRenderer : Graphic
         // Right bottom Corner
         vh.AddTriangle(offset + 21, offset + 13, offset + 7);
         vh.AddTriangle(offset + 13, offset + 3, offset + 7);
-        vh.AddTriangle(offset + 7, offset + 3, offset + 16);
+        vh.AddTriangle(offset + 7, offset + 3, offset + 14);
         vh.AddTriangle(offset + 14, offset + 22, offset + 7);
     }
     
