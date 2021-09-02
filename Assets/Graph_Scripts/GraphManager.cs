@@ -18,6 +18,7 @@ public class GraphManager : MonoBehaviour
     [SerializeField] [FixEnumNames] private NumberUtils.Unit yMagnitude = NumberUtils.Unit.Unitary;
 
     #region GraphObjects
+    private RectTransform canvas;
     private RectTransform graphContainer;
     private RectTransform labelsBackground;
     private RectTransform titlesBackground;
@@ -54,17 +55,18 @@ public class GraphManager : MonoBehaviour
         labelsBackground = transform.Find("Labels background").GetComponent<RectTransform>();
         titlesBackground = transform.Find("Titles background").GetComponent<RectTransform>();
         graphBackground = transform.Find("Graph background").GetComponent<RectTransform>();
-        
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
-        graphWidth = graphContainer.sizeDelta.x;
-        graphHeight = graphContainer.sizeDelta.y;
-        
+        canvas = transform.parent.GetComponent<RectTransform>();
+
+        graphWidth = canvas.sizeDelta.x + GetComponent<RectTransform>().sizeDelta.x + graphContainer.sizeDelta.x; // graphContainer.sizeDelta.x is negative
+        graphHeight = canvas.sizeDelta.y + GetComponent<RectTransform>().sizeDelta.y + graphContainer.sizeDelta.y; // graphContainer.sizeDelta.y is negative
+
         title = titlesBackground.Find("Title").GetComponent<RectTransform>();
         xAxisTitle = titlesBackground.Find("X axis title").GetComponent<RectTransform>();
         yAxisTitle = titlesBackground.Find("Y axis title").GetComponent<RectTransform>();
         
-        labelTemplateX = labelsBackground.Find("Label template X").GetComponent<RectTransform>();
-        labelTemplateY = labelsBackground.Find("Label template Y").GetComponent<RectTransform>();
+        labelTemplateX = graphContainer.Find("Label template X").GetComponent<RectTransform>();
+        labelTemplateY = graphContainer.Find("Label template Y").GetComponent<RectTransform>();
         
         gameObjectsList = new List<GameObject>();
 
@@ -97,7 +99,6 @@ public class GraphManager : MonoBehaviour
 
         (yMin, yMax, yStep, startIndex) = GetAxisValues(yValues, visibleAmount);
         (xMin, xMax, xStep, _) = GetAxisValues(xValues);
-        Debug.Log(xMax);
 
         SetTitles(xVariable, yVariable);
         CreateLabelsAndDashes(getAxisLabelX, getAxisLabelY);
@@ -117,17 +118,17 @@ public class GraphManager : MonoBehaviour
     private void SetTitles(SpiceVariable xVariable, SpiceVariable yVariable)
     {
         title.GetComponent<TextMeshProUGUI>().text = SpiceParser.Title;
-        title.anchoredPosition = new Vector2(0, -(titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
+        title.anchoredPosition = new Vector2(0, labelsBackground.sizeDelta.y / 4f);
         title.gameObject.SetActive(true);
 
         string xUnit = NumberUtils.GetUnit(xVariable.Name, xMagnitude);
         xAxisTitle.GetComponent<TextMeshProUGUI>().text = xVariable.DisplayName + xUnit;
-        xAxisTitle.anchoredPosition = new Vector2(0, (titlesBackground.sizeDelta.y - labelsBackground.sizeDelta.y) / 4f);
+        xAxisTitle.anchoredPosition = new Vector2(0, -labelsBackground.sizeDelta.y / 4f);
         xAxisTitle.gameObject.SetActive(true);
         
         string yUnit = NumberUtils.GetUnit(yVariable.Name, yMagnitude);
         yAxisTitle.GetComponent<TextMeshProUGUI>().text = yVariable.DisplayName + yUnit;
-        yAxisTitle.anchoredPosition = new Vector2((titlesBackground.sizeDelta.x - labelsBackground.sizeDelta.x) / 4f, 0);
+        yAxisTitle.anchoredPosition = new Vector2(-labelsBackground.sizeDelta.x / 4f, 0);
         yAxisTitle.gameObject.SetActive(true);
     }
 
@@ -138,8 +139,8 @@ public class GraphManager : MonoBehaviour
         {
             float diff = xMax - xMin;
             float graphPosX = GetGraphPosX(xSeparatorPos);
-            float yLabelPos = (labelsBackground.sizeDelta.y - graphHeight) / 4f;
-            CreateLabel(labelTemplateX, new Vector2(graphPosX, -yLabelPos), getAxisLabelX(xSeparatorPos, diff));
+            float yLabelPos = -(labelsBackground.sizeDelta.y - graphContainer.sizeDelta.y) / 4f;
+            CreateLabel(labelTemplateX, new Vector2(graphPosX, yLabelPos), getAxisLabelX(xSeparatorPos, diff));
         }
 
         int yLabelCount = 0;
@@ -147,7 +148,7 @@ public class GraphManager : MonoBehaviour
         {
             float diff = yMax - yMin;
             float graphPosY = GetGraphPosY(ySeparatorPos);
-            float xLabelPos = (labelsBackground.sizeDelta.x - graphWidth) / 4f;
+            float xLabelPos = (labelsBackground.sizeDelta.x - graphContainer.sizeDelta.x) / 4f;
             CreateLabel(labelTemplateY, new Vector2(-xLabelPos, graphPosY), getAxisLabelY(ySeparatorPos, diff));
         }
         
@@ -242,15 +243,6 @@ public class GraphManager : MonoBehaviour
         label.GetComponent<TextMeshProUGUI>().text = labelText;
         
         gameObjectsList.Add(label.gameObject);
-    }
-
-    private void CreateDash(RectTransform dashTemplate, Vector2 position)
-    {
-        RectTransform dash = Instantiate(dashTemplate, graphContainer, false);
-        dash.gameObject.SetActive(true);
-        dash.anchoredPosition = position;
-        
-        gameObjectsList.Add(dash.gameObject);
     }
 
     private GameObject CreateConnection(Vector2 dotPositionA, Vector2 dotPositionB)
