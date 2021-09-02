@@ -21,6 +21,7 @@ public class GraphManager : MonoBehaviour
     private RectTransform graphContainer;
     private RectTransform labelsBackground;
     private RectTransform titlesBackground;
+    private RectTransform graphBackground;
     private RectTransform title;
     private RectTransform xAxisTitle;
     private RectTransform yAxisTitle;
@@ -52,6 +53,7 @@ public class GraphManager : MonoBehaviour
     {
         labelsBackground = transform.Find("Labels background").GetComponent<RectTransform>();
         titlesBackground = transform.Find("Titles background").GetComponent<RectTransform>();
+        graphBackground = transform.Find("Graph background").GetComponent<RectTransform>();
         
         graphContainer = transform.Find("Graph container").GetComponent<RectTransform>();
         graphWidth = graphContainer.sizeDelta.x;
@@ -64,21 +66,11 @@ public class GraphManager : MonoBehaviour
         labelTemplateX = labelsBackground.Find("Label template X").GetComponent<RectTransform>();
         labelTemplateY = labelsBackground.Find("Label template Y").GetComponent<RectTransform>();
         
-        dashTemplateX = graphContainer.Find("Dash template X").GetComponent<RectTransform>();
-        dashTemplateY = graphContainer.Find("Dash template Y").GetComponent<RectTransform>();
-        SetTemplateSizes();
-        
         gameObjectsList = new List<GameObject>();
 
-        uiGridRenderer = transform.Find("UIGridRenderer").GetComponent<UIGridRenderer>();
+        uiGridRenderer = graphBackground.Find("UIGridRenderer").GetComponent<UIGridRenderer>();
     }
 
-    private void SetTemplateSizes()
-    {
-        dashTemplateX.sizeDelta = new Vector2(graphWidth / dashTemplateX.transform.localScale.x, dashTemplateX.sizeDelta.y);
-        dashTemplateY.sizeDelta = new Vector2(graphHeight / dashTemplateY.transform.localScale.x, dashTemplateY.sizeDelta.y);
-    }
-    
     private void OnGUI()
     {
         if (GUI.Button(new Rect(330, 10, 150, 50), "Show graph"))
@@ -148,9 +140,6 @@ public class GraphManager : MonoBehaviour
             float graphPosX = GetGraphPosX(xSeparatorPos);
             float yLabelPos = (labelsBackground.sizeDelta.y - graphHeight) / 4f;
             CreateLabel(labelTemplateX, new Vector2(graphPosX, -yLabelPos), getAxisLabelX(xSeparatorPos, diff));
-            
-            //if (!IsLastOrFistDash(xSeparatorPos, xMin, xMax, xStep)) 
-            //    CreateDash(dashTemplateX, new Vector2(graphPosX, 0));
         }
 
         int yLabelCount = 0;
@@ -160,9 +149,6 @@ public class GraphManager : MonoBehaviour
             float graphPosY = GetGraphPosY(ySeparatorPos);
             float xLabelPos = (labelsBackground.sizeDelta.x - graphWidth) / 4f;
             CreateLabel(labelTemplateY, new Vector2(-xLabelPos, graphPosY), getAxisLabelY(ySeparatorPos, diff));
-            
-            //if (!IsLastOrFistDash(ySeparatorPos, yMin, yMax, yStep))
-            //    CreateDash(dashTemplateY,new Vector2(0, graphPosY));
         }
         
         int xDivisions = --xLabelCount;
@@ -170,11 +156,6 @@ public class GraphManager : MonoBehaviour
         uiGridRenderer.GridSize = new Vector2Int(xDivisions, yDivisions);
     }
 
-    private bool IsLastOrFistDash(float pos, float min, float max, float step)
-    {
-        return pos < min + step / 2f || pos > max - step / 2f;
-    }
-    
     private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
     {
         
@@ -246,9 +227,6 @@ public class GraphManager : MonoBehaviour
         float significantFigure = diff * Mathf.Pow(10, significantFigurePos);
 
         float step = Mathf.Pow(10, significantFigurePos) / (significantFigure > 5f ? 1f : 2f);
-        
-        //max += step;
-        //min -= step;
         
         if (startAtZero)
             min = 0;
