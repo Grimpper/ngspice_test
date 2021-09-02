@@ -348,10 +348,12 @@ MonoBehaviour:
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   gridSize: {x: 1, y: 1}
-  thickness: 1.5
-  dashes: 6
+  thickness: 6.33
+  horizontalDashes: 10
+  verticalDashes: 10
+  equalDashes: 0
   cellType: 1
-  debug: 0
+  debug: 1
 --- !u!222 &261053206
 CanvasRenderer:
   m_ObjectHideFlags: 0
