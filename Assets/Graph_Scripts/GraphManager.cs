@@ -106,7 +106,7 @@ public class GraphManager : MonoBehaviour
 
         SetTitles(xVariable, yVariable);
         CreateLabelsAndDashes(getAxisLabelX, getAxisLabelY);
-        CreateDotsAndConnections(xValues, yValues);
+        CreateDots(xValues, yValues);
 
     }
     
@@ -162,6 +162,29 @@ public class GraphManager : MonoBehaviour
         gridSize = new Vector2Int(xDivisions, yDivisions);
         uiGridRenderer.GridSize = gridSize;
         uiLineRenderer.GridSize = gridSize;
+    }
+    
+    private void CreateDots(in List<float> xValues, in List<float> yValues)
+    {
+        GameObject lastCircle = null;
+        List<Vector2> graphPoints = new List<Vector2>();
+
+        for (int i = startIndex; i < yValues.Count; i++)
+        {
+            Vector2 dataPoint = new Vector2(GetGraphPosX(xValues[i]), GetGraphPosY(yValues[i]));
+            graphPoints.Add(dataPoint);
+
+            if (!lastCircle || !((dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude <
+                                 minDistanceBetweenPoints))
+            {
+                GameObject circle = CreateCircle(dataPoint);
+                gameObjectsList.Add(circle);
+
+                lastCircle = circle;
+            }
+        }
+
+        uiLineRenderer.Points = graphPoints;
     }
 
     private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
