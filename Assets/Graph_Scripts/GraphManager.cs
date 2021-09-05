@@ -166,13 +166,14 @@ public class GraphManager : MonoBehaviour
 
     private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
     {
-        
         GameObject lastCircle = null;
         Vector2? lastDataPoint = null;
-        
+        List<Vector2> graphPoints = new List<Vector2>();
+
         for (int i = startIndex; i < yValues.Count; i++)
         {
             Vector2 dataPoint = new Vector2(GetGraphPosX(xValues[i]), GetGraphPosY(yValues[i]));
+            graphPoints.Add(dataPoint);
 
             if (!lastCircle || !((dataPoint - lastCircle.GetComponent<RectTransform>().anchoredPosition).magnitude <
                                  minDistanceBetweenPoints))
@@ -183,15 +184,17 @@ public class GraphManager : MonoBehaviour
                 lastCircle = circle;
             }
 
-            if (lastDataPoint != null)
-            {
-                GameObject connection = CreateConnection((Vector2) lastDataPoint,
-                    dataPoint);
-                gameObjectsList.Add(connection);
-            }
+            // if (lastDataPoint != null)
+            // {
+            //     GameObject connection = CreateConnection((Vector2) lastDataPoint,
+            //         dataPoint);
+            //     gameObjectsList.Add(connection);
+            // }
 
-            lastDataPoint = dataPoint;
+             lastDataPoint = dataPoint;
         }
+
+        uiLineRenderer.Points = graphPoints;
     }
     
     private GameObject CreateCircle(Vector2 anchoredPos)

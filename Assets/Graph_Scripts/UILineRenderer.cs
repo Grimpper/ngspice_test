@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class UILineRenderer : Graphic
 {
@@ -14,22 +15,26 @@ public class UILineRenderer : Graphic
     private Function[] functions;
     
     private Function GetFunction() => functions[(int) lineConnection];
+    
+    [SerializeField] private float thickness = 10f;
 
     [SerializeField] private Vector2Int gridSize;
-    public List<Vector2> points;
-
-    private float width;
-    private float height;
-    private float unitWidth;
-    private float unitHeight;
-
-    [SerializeField] private float thickness = 10f;
+    private List<Vector2> points = new List<Vector2>();
 
     public Vector2Int GridSize
     {
         set
         {
             gridSize = value;
+            UpdateGeometry();
+        }
+    }
+    
+    public List<Vector2> Points
+    {
+        set
+        {
+            points = value;
             UpdateGeometry();
         }
     }
@@ -43,17 +48,12 @@ public class UILineRenderer : Graphic
         Function drawFunction = GetFunction();
         
         vh.Clear();
-
-        width = rectTransform.rect.width;
-        height = rectTransform.rect.height;
-
-        unitWidth = width / gridSize.x;
-        unitHeight = height / gridSize.y;
         
         if (points.Count < 2) 
             return;
 
-        DrawFirstPointVertices(ref vh, points[0], points[1]);
+        DrawPointVerticesAlongNormal(ref vh, points[0], points[1], true);
+        
         for (int i = 1; i < points.Count - 1; i++)
         {
             Vector2 lastPoint = points[i - 1];
@@ -62,7 +62,8 @@ public class UILineRenderer : Graphic
 
             drawFunction(ref vh, lastPoint, point, nextPoint);
         }
-        DrawLastPointVertices(ref vh, points[points.Count - 2], points[points.Count - 1]);
+
+        DrawPointVerticesAlongNormal(ref vh, points[points.Count - 2], points[points.Count - 1], false);
         
         for (int i = 0; i < points.Count - 1; i++)
         {
@@ -82,15 +83,20 @@ public class UILineRenderer : Graphic
 
         Vector2 abPlusIntersection = NumberUtils.LineIntersection(lineAPlus, lineBPlus);
         Vector2 abMinusIntersection = NumberUtils.LineIntersection(lineAMinus, lineBMinus);
-
-        UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = debug ? new Color32(0, 0, 255, 255) : (Color32)color;
+        
+        if (float.IsNaN(abPlusIntersection.x) || float.IsNaN(abMinusIntersection.x)) 
+            DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
+        else
+        {
+            UIVertex vertex = UIVertex.simpleVert;
+            vertex.color = debug ? Random.ColorHSV() : color;
             
-        vertex.position = new Vector3(abPlusIntersection.x, abPlusIntersection.y);
-        vh.AddVert(vertex);
+            vertex.position = new Vector3(abPlusIntersection.x, abPlusIntersection.y);
+            vh.AddVert(vertex);
             
-        vertex.position = new Vector3(abMinusIntersection.x, abMinusIntersection.y);
-        vh.AddVert(vertex);
+            vertex.position = new Vector3(abMinusIntersection.x, abMinusIntersection.y);
+            vh.AddVert(vertex);
+        }
     }
 
     private void DrawBisecting(ref VertexHelper vh, Vector2 lastPoint, Vector2 point, Vector2 nextPoint)
@@ -103,71 +109,57 @@ public class UILineRenderer : Graphic
         Vector2 bisectorUnitVector = new Vector2(Mathf.Cos(bisectorAngle), Mathf.Sin(bisectorAngle));
             
         UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = debug ? new Color32(0, 0, 255, 255) : (Color32)color;
+        vertex.color = debug ? Random.ColorHSV() : color;
             
-        float xPos = point.x + thickness * bisectorUnitVector.x;
-        float yPos = point.y + thickness * bisectorUnitVector.y;
+        float xPos = point.x + thickness / 2 * bisectorUnitVector.x;
+        float yPos = point.y + thickness / 2 * bisectorUnitVector.y;
         vertex.position = new Vector3(xPos, yPos);
         vh.AddVert(vertex);
             
-        xPos = point.x - thickness * bisectorUnitVector.x;
-        yPos = point.y - thickness * bisectorUnitVector.y;
+        xPos = point.x - thickness / 2 * bisectorUnitVector.x;
+        yPos = point.y - thickness / 2 * bisectorUnitVector.y;
         vertex.position = new Vector3(xPos, yPos);
         vh.AddVert(vertex);
     }
 
     private NumberUtils.Line GetLinePlus(NumberUtils.Line line)
     {
-        float xPosPlus = line.GetPoint().x + thickness * line.normal.x;
-        float yPosPlus = line.GetPoint().y + thickness * line.normal.y;
+        float xPosPlus = line.GetPoint().x + thickness / 2 * line.normal.x;
+        float yPosPlus = line.GetPoint().y + thickness / 2 * line.normal.y;
         Vector2 pointPlus = new Vector2(xPosPlus, yPosPlus);
         return new NumberUtils.Line(pointPlus, line.dir);
     }
     
     private NumberUtils.Line GetLineMinus(NumberUtils.Line line)
     {
-        float xPosMinus = line.GetPoint().x - thickness * line.normal.x;
-        float yPosMinus = line.GetPoint().y - thickness * line.normal.y;
+        float xPosMinus = line.GetPoint().x - thickness / 2 * line.normal.x;
+        float yPosMinus = line.GetPoint().y - thickness / 2 * line.normal.y;
         Vector2 pointMinus = new Vector2(xPosMinus, yPosMinus);
         return new NumberUtils.Line(pointMinus, line.dir);
     }
 
-    private void DrawFirstPointVertices(ref VertexHelper vh, Vector2 firstPoint, Vector2 secondPoint)
+    private void DrawPointVerticesAlongNormal(ref VertexHelper vh, Vector2 pointA, Vector2 pointB, 
+        bool drawAtFirst)
     {
+        ref Vector2 pointToDraw = ref pointB;
+        
+        if (drawAtFirst)
+            pointToDraw = ref pointA;
+        
         UIVertex vertex = UIVertex.simpleVert;
         vertex.color = debug ? new Color32(255, 255, 255, 255) : (Color32)color;
 
-        Vector2 normal = NumberUtils.GetNormalVector(secondPoint - firstPoint);
+        Vector2 normal = NumberUtils.GetNormalVector(pointB - pointA);
 
-        float xPos = firstPoint.x + thickness * normal.x;
-        float yPos = firstPoint.y + thickness * normal.y;
+        float xPos = pointToDraw.x + thickness / 2 * normal.x;
+        float yPos = pointToDraw.y + thickness / 2 * normal.y;
         vertex.position = new Vector3(xPos, yPos);
         vh.AddVert(vertex);
         
         vertex.color = debug ? new Color32(255, 0, 255, 255) : (Color32)color;
         
-        xPos = firstPoint.x - thickness * normal.x;
-        yPos = firstPoint.y - thickness * normal.y;
-        vertex.position = new Vector3(xPos, yPos);
-        vh.AddVert(vertex);
-    }
-    
-    private void DrawLastPointVertices(ref VertexHelper vh, Vector2 secondLastPoint, Vector2 lastPoint)
-    {
-        UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = debug ? new Color32(255, 0, 0, 255) : (Color32)color;
-
-        Vector2 normal = NumberUtils.GetNormalVector(lastPoint - secondLastPoint);
-
-        float xPos = lastPoint.x + thickness * normal.x;
-        float yPos = lastPoint.y + thickness * normal.y;
-        vertex.position = new Vector3(xPos, yPos);
-        vh.AddVert(vertex);
-        
-        vertex.color = debug ? new Color32(0, 255, 0, 255) : (Color32)color;
-        
-        xPos = lastPoint.x - thickness * normal.x;
-        yPos = lastPoint.y - thickness * normal.y;
+        xPos = pointToDraw.x - thickness / 2 * normal.x;
+        yPos = pointToDraw.y - thickness / 2 * normal.y;
         vertex.position = new Vector3(xPos, yPos);
         vh.AddVert(vertex);
     }
