@@ -19,7 +19,7 @@ public class UILineRenderer : Graphic
     [SerializeField] private float thickness = 10f;
 
     [SerializeField] private Vector2Int gridSize;
-    private List<Vector2> points = new List<Vector2>();
+    [SerializeField] private List<Vector2> points = new List<Vector2>();
 
     public Vector2Int GridSize
     {
@@ -106,20 +106,25 @@ public class UILineRenderer : Graphic
         
         float bisectorAngle = NumberUtils.GetAngleBisectorAngle(lineA.dir, lineB.dir);
 
-        Vector2 bisectorUnitVector = new Vector2(Mathf.Cos(bisectorAngle), Mathf.Sin(bisectorAngle));
-            
-        UIVertex vertex = UIVertex.simpleVert;
-        vertex.color = debug ? Random.ColorHSV() : color;
-            
-        float xPos = point.x + thickness / 2 * bisectorUnitVector.x;
-        float yPos = point.y + thickness / 2 * bisectorUnitVector.y;
-        vertex.position = new Vector3(xPos, yPos);
-        vh.AddVert(vertex);
-            
-        xPos = point.x - thickness / 2 * bisectorUnitVector.x;
-        yPos = point.y - thickness / 2 * bisectorUnitVector.y;
-        vertex.position = new Vector3(xPos, yPos);
-        vh.AddVert(vertex);
+        if (float.IsNaN(bisectorAngle)) 
+            DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
+        else
+        {
+            Vector2 bisectorUnitVector = new Vector2(Mathf.Cos(bisectorAngle), Mathf.Sin(bisectorAngle));
+
+            UIVertex vertex = UIVertex.simpleVert;
+            vertex.color = debug ? Random.ColorHSV() : color;
+
+            float xPos = point.x + thickness / 2 * bisectorUnitVector.x;
+            float yPos = point.y + thickness / 2 * bisectorUnitVector.y;
+            vertex.position = new Vector3(xPos, yPos);
+            vh.AddVert(vertex);
+
+            xPos = point.x - thickness / 2 * bisectorUnitVector.x;
+            yPos = point.y - thickness / 2 * bisectorUnitVector.y;
+            vertex.position = new Vector3(xPos, yPos);
+            vh.AddVert(vertex);
+        }
     }
 
     private NumberUtils.Line GetLinePlus(NumberUtils.Line line)
