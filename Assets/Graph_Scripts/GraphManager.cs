@@ -17,6 +17,8 @@ public class GraphManager : MonoBehaviour
     [SerializeField] [FixEnumNames] private NumberUtils.Unit xMagnitude = NumberUtils.Unit.Unitary;
     [SerializeField] [FixEnumNames] private NumberUtils.Unit yMagnitude = NumberUtils.Unit.Unitary;
 
+    [SerializeField] private Vector2Int gridSize;
+
     #region GraphObjects
     private RectTransform canvas;
     private RectTransform graphContainer;
@@ -33,6 +35,7 @@ public class GraphManager : MonoBehaviour
     private List<GameObject> gameObjectsList;
 
     private UIGridRenderer uiGridRenderer;
+    private UILineRenderer uiLineRenderer;
     #endregion
 
     #region GraphData
@@ -71,6 +74,7 @@ public class GraphManager : MonoBehaviour
         gameObjectsList = new List<GameObject>();
 
         uiGridRenderer = graphBackground.Find("UIGridRenderer").GetComponent<UIGridRenderer>();
+        uiLineRenderer = graphBackground.Find("UILineRenderer").GetComponent<UILineRenderer>();
     }
 
     private void OnGUI()
@@ -154,7 +158,10 @@ public class GraphManager : MonoBehaviour
         
         int xDivisions = --xLabelCount;
         int yDivisions = --yLabelCount;
-        uiGridRenderer.GridSize = new Vector2Int(xDivisions, yDivisions);
+
+        gridSize = new Vector2Int(xDivisions, yDivisions);
+        uiGridRenderer.GridSize = gridSize;
+        uiLineRenderer.GridSize = gridSize;
     }
 
     private void CreateDotsAndConnections(in List<float> xValues, in List<float> yValues)
@@ -260,7 +267,7 @@ public class GraphManager : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositionA + 0.5f * distance * dir;
         rectTransform.localEulerAngles = 
-            new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Degrees) ?? 0f);
+            new Vector3(0, 0, NumberUtils.GetAngleFromVector(dir, NumberUtils.Degrees));
 
         return connection;
     }

@@ -22,7 +22,6 @@ public class UIGridRenderer : Graphic
     private delegate void Function(int x, int y, int index, VertexHelper vh);
 
     private Function[] functions;
-    private Function drawFunction;
 
     private const int SolidCellVertices = 8;
     private const int CornerVertices = 24;
@@ -55,7 +54,7 @@ public class UIGridRenderer : Graphic
     {
         functions = new Function[] { DrawCell, DrawDashedCell };
 
-        drawFunction = GetFunction();
+        Function drawFunction = GetFunction();
         
         vh.Clear();
         
