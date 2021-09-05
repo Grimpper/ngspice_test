@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 public class UILineRenderer : Graphic
 {
     enum LineConnection { Intersect, Bisect }
-    [SerializeField] private LineConnection lineConnection = LineConnection.Intersect;
+    [SerializeField] private LineConnection lineConnection = LineConnection.Bisect;
 
     private delegate void Function(ref VertexHelper vh, Vector2 lastPoint, Vector2 point, Vector2 nextPoint);
 
