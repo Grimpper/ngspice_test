@@ -64,16 +64,12 @@ public class UILineRenderer : Graphic
         }
 
         DrawPointVerticesAlongNormal(ref vh, points[points.Count - 2], points[points.Count - 1], false);
-        
-        // First line
-        vh.AddTriangle(0, 2, 1);
-        vh.AddTriangle(2, 3, 1);
 
         int lineCount = points.Count - 1;
-        for (int i = 1; i < lineCount - 1; i++)
+        for (int i = 0; i < lineCount; i++)
         {
             int lineVertexOffset = i * 4;
-            DrawLines(ref vh, lineVertexOffset);
+            DrawLine(ref vh, lineVertexOffset);
         }
 
         int triangleCount = lineCount - 1;
@@ -82,10 +78,6 @@ public class UILineRenderer : Graphic
             int triangleVertexOffset = i * 4 + 2;
             DrawTriangle(ref vh, triangleVertexOffset);
         }
-        
-        // Last line
-        vh.AddTriangle(4, 6, 5);
-        vh.AddTriangle(6, 3, 7);
     }
 
     private void DrawIntersecting(ref VertexHelper vh, Vector2 lastPoint, Vector2 point, Vector2 nextPoint)
@@ -123,8 +115,11 @@ public class UILineRenderer : Graphic
 
         float bisectorAngle = NumberUtils.GetAngleBisectorAngle(lineA.dir, lineB.dir);
         
-        if (float.IsNaN(bisectorAngle)) 
+        if (float.IsNaN(bisectorAngle))
+        {
             DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
+            DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
+        }
         else
         {
             Vector2 bisectorUnitVector = new Vector2(Mathf.Cos(bisectorAngle), Mathf.Sin(bisectorAngle));
@@ -219,7 +214,7 @@ public class UILineRenderer : Graphic
         vh.AddVert(vertex);
     }
 
-    private void DrawLines(ref VertexHelper vh, int vertexOffset)
+    private void DrawLine(ref VertexHelper vh, int vertexOffset)
     {
         vh.AddTriangle(vertexOffset + 0, vertexOffset + 2, vertexOffset + 1);
         vh.AddTriangle(vertexOffset + 2, vertexOffset + 3, vertexOffset + 1);

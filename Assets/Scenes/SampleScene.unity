@@ -177,12 +177,9 @@ MonoBehaviour:
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   lineConnection: 1
-  thickness: 9.9
+  thickness: 10
   gridSize: {x: 17, y: 20}
-  points:
-  - {x: 300, y: 300}
-  - {x: 310, y: 366.1}
-  - {x: 320, y: 330.5}
+  points: []
   debug: 0
 --- !u!222 &20368716
 CanvasRenderer:
@@ -1644,7 +1641,7 @@ MonoBehaviour:
   circleMaterial: {fileID: 2100000, guid: b830179df39b0d345a36ec874ee84747, type: 2}
   circleDiameter: 0
   startAtZero: 0
-  minDistanceBetweenPoints: 20
+  minDistanceBetweenPoints: -1
   maxVisibleAmount: -1
   xMagnitude: -3
   yMagnitude: 0
