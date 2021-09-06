@@ -65,10 +65,27 @@ public class UILineRenderer : Graphic
 
         DrawPointVerticesAlongNormal(ref vh, points[points.Count - 2], points[points.Count - 1], false);
         
-        for (int i = 0; i < points.Count - 1; i++)
+        // First line
+        vh.AddTriangle(0, 2, 1);
+        vh.AddTriangle(2, 3, 1);
+
+        int lineCount = points.Count - 1;
+        for (int i = 1; i < lineCount - 1; i++)
         {
-            DrawTriangles(ref vh, i);
+            int lineVertexOffset = i * 4;
+            DrawLines(ref vh, lineVertexOffset);
         }
+
+        int triangleCount = lineCount - 1;
+        for (int i = 0; i < triangleCount; i++)
+        {
+            int triangleVertexOffset = i * 4 + 2;
+            DrawTriangle(ref vh, triangleVertexOffset);
+        }
+        
+        // Last line
+        vh.AddTriangle(4, 6, 5);
+        vh.AddTriangle(6, 3, 7);
     }
 
     private void DrawIntersecting(ref VertexHelper vh, Vector2 lastPoint, Vector2 point, Vector2 nextPoint)
@@ -103,8 +120,41 @@ public class UILineRenderer : Graphic
     {
         NumberUtils.Line lineA = new NumberUtils.Line(lastPoint, point - lastPoint);
         NumberUtils.Line lineB = new NumberUtils.Line(point, nextPoint - point);
-        
+
         float bisectorAngle = NumberUtils.GetAngleBisectorAngle(lineA.dir, lineB.dir);
+        
+        if (float.IsNaN(bisectorAngle)) 
+            DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
+        else
+        {
+            Vector2 bisectorUnitVector = new Vector2(Mathf.Cos(bisectorAngle), Mathf.Sin(bisectorAngle));
+            Vector2 abMinusIntersection = point - thickness / 2 * bisectorUnitVector;
+
+            Vector2 lineAPlusVertex = abMinusIntersection + thickness * lineA.normal;
+            Vector2 lineBPlusVertex = abMinusIntersection + thickness * lineB.normal;
+
+            UIVertex vertex = UIVertex.simpleVert;
+            vertex.color = debug ? new Color32(255, 0, 0, 255) : (Color32)color;
+        
+            vertex.position = lineAPlusVertex;
+            vh.AddVert(vertex);
+        
+            vertex.color = debug ? new Color32(0, 255, 0, 255) : (Color32)color;
+        
+            vertex.position = abMinusIntersection;
+            vh.AddVert(vertex);
+
+            vertex.color = debug ? new Color32(0, 0, 255, 255) : (Color32)color;
+        
+            vertex.position = lineBPlusVertex;
+            vh.AddVert(vertex);
+        
+            vertex.position = abMinusIntersection;
+            vh.AddVert(vertex);
+        }
+        
+        
+        /*float bisectorAngle = NumberUtils.GetAngleBisectorAngle(lineA.dir, lineB.dir);
 
         if (float.IsNaN(bisectorAngle)) 
             DrawPointVerticesAlongNormal(ref vh, point, nextPoint, true);
@@ -124,7 +174,7 @@ public class UILineRenderer : Graphic
             yPos = point.y - thickness / 2 * bisectorUnitVector.y;
             vertex.position = new Vector3(xPos, yPos);
             vh.AddVert(vertex);
-        }
+        }*/
     }
 
     private NumberUtils.Line GetLinePlus(NumberUtils.Line line)
@@ -169,11 +219,14 @@ public class UILineRenderer : Graphic
         vh.AddVert(vertex);
     }
 
-    private void DrawTriangles(ref VertexHelper vh, int index)
+    private void DrawLines(ref VertexHelper vh, int vertexOffset)
     {
-        int vertexCoupleOffset = index * 2;
-        
-        vh.AddTriangle(vertexCoupleOffset + 0, vertexCoupleOffset + 1, vertexCoupleOffset + 2);
-        vh.AddTriangle(vertexCoupleOffset + 2, vertexCoupleOffset + 3, vertexCoupleOffset + 1);
+        vh.AddTriangle(vertexOffset + 0, vertexOffset + 2, vertexOffset + 1);
+        vh.AddTriangle(vertexOffset + 2, vertexOffset + 3, vertexOffset + 1);
+    }
+    
+    private void DrawTriangle(ref VertexHelper vh, int vertexOffset)
+    {
+        vh.AddTriangle(vertexOffset + 0, vertexOffset + 2, vertexOffset + 1);
     }
 }

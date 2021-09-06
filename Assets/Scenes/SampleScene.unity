@@ -177,9 +177,12 @@ MonoBehaviour:
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   lineConnection: 1
-  thickness: 10
+  thickness: 9.9
   gridSize: {x: 17, y: 20}
-  points: []
+  points:
+  - {x: 300, y: 300}
+  - {x: 310, y: 366.1}
+  - {x: 320, y: 330.5}
   debug: 0
 --- !u!222 &20368716
 CanvasRenderer:
