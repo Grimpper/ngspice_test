@@ -7,6 +7,7 @@ using UnityEngine;
 public class SpiceParser : MonoBehaviour
 {
     private static string PathToRead;
+    private static string PathToWrite = "F:\\Unity_Projects\\ngspice_test\\Spice64\\circuits\\write_test.cir";
     private static string title = String.Empty;
     private static string date = String.Empty;
     private static string plotName = String.Empty;
@@ -42,9 +43,9 @@ public class SpiceParser : MonoBehaviour
         return null;
     }
     
-    public static void WriteString(string str)
+    public static void WriteFile(string str)
     {
-        StreamWriter writer = new StreamWriter(PathToRead, true);
+        StreamWriter writer = new StreamWriter(PathToWrite, false);
         writer.WriteLine(str);
         writer.Close();
     }
